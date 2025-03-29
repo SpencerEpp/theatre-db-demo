@@ -22,7 +22,7 @@ CREATE TABLE Play (
 -- Creating the Production table
 CREATE TABLE Production (
     ProductionID INT PRIMARY KEY,
-    ProductionDate DATE NOT NULL
+    ProductionDate DATE NOT NULL,
     TotalCost DECIMAL(12,2) GENERATED ALWAYS AS (
         (SELECT COALESCE(SUM(p.Cost), 0)
          FROM Production_Play pp
@@ -78,7 +78,7 @@ CREATE TABLE DuesPayment (
     PaymentID INT PRIMARY KEY AUTO_INCREMENT,
     DuesID INT NOT NULL,
     AmountPaid DECIMAL(6,2) NOT NULL,
-    PaymentDate DATE NOT NULL DEFAULT CURRENT_DATE,
+    PaymentDate DATE NOT NULL DEFAULT (CURRENT_DATE),
     FOREIGN KEY (DuesID) REFERENCES DuesOwed(DuesID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -125,7 +125,7 @@ CREATE TABLE Ticket (
     ReservationDeadline DATE NULL,
     FOREIGN KEY (ProductionID) REFERENCES Production(ProductionID) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (PatronID) REFERENCES Patron(PatronID) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE (ProductionID, SeatID) -- Prevent duplicate ticket entries per production/seat
 );
 
