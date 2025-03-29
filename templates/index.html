@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theatre Management</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h2 { margin-top: 40px; }
+    form { margin-bottom: 20px; }
+    .output { border: 1px solid #ccc; padding: 10px; max-height: 200px; overflow-y: auto; resize: vertical; background: #f9f9f9; }
+    button { margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Theatre Admin Portal</h1>
+
+  <!-- Each section below corresponds to a procedure/function -->
+
+  <h2>Add Play To Production</h2>
+  <form onsubmit="submitForm(event, 'AddPlayToProduction')">
+    <input name="ProductionID" placeholder="ProductionID" required>
+    <input name="PlayID" placeholder="PlayID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Undo Play From Production</h2>
+  <form onsubmit="submitForm(event, 'UndoPlayFromProduction')">
+    <input name="ProductionID" placeholder="ProductionID" required>
+    <input name="PlayID" placeholder="PlayID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Add Production Expense</h2>
+  <form onsubmit="submitForm(event, 'AddProductionExpense')">
+    <input name="Amount" placeholder="Amount" required>
+    <input name="Date" type="date" placeholder="Date">
+    <input name="ProductionID" placeholder="ProductionID" required>
+    <input name="Description" placeholder="Description">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Undo Production Expense</h2>
+  <form onsubmit="submitForm(event, 'UndoProductionExpense')">
+    <input name="TransactionID" placeholder="TransactionID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Add Dues Installment</h2>
+  <form onsubmit="submitForm(event, 'AddDuesInstallment')">
+    <input name="MemberID" placeholder="MemberID" required>
+    <input name="Year" placeholder="Year" required>
+    <input name="Amount" placeholder="Amount" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Undo Dues Installment</h2>
+  <form onsubmit="submitForm(event, 'UndoDuesInstallment')">
+    <input name="PaymentID" placeholder="PaymentID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Purchase Ticket</h2>
+  <form onsubmit="submitForm(event, 'PurchaseTicket')">
+    <input name="ProductionID" placeholder="ProductionID" required>
+    <input name="SeatID" placeholder="SeatID" required>
+    <input name="PatronID" placeholder="PatronID (optional)">
+    <input name="Price" placeholder="Price" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Undo Ticket Purchase</h2>
+  <form onsubmit="submitForm(event, 'UndoTicketPurchase')">
+    <input name="TicketID" placeholder="TicketID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Get Production Financial Summary</h2>
+  <form onsubmit="submitForm(event, 'GetProductionFinancialSummary')">
+    <input name="ProductionID" placeholder="ProductionID (optional)">
+    <input name="StartDate" type="date" placeholder="Start Date (optional)">
+    <input name="EndDate" type="date" placeholder="End Date (optional)">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Get Total Paid For Dues (Function)</h2>
+  <form onsubmit="submitFunction(event, 'GetTotalPaidForDues')">
+    <input name="DuesID" placeholder="DuesID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Output</h2>
+  <div id="output" class="output"></div>
+
+  <script>
+    function submitForm(event, action) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      formData.append("action", action);
+
+      fetch('/procedure', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => showOutput(action, data))
+      .catch(err => alert('Request failed: ' + err));
+    }
+
+    function submitFunction(event, action) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      formData.append("action", action);
+
+      fetch('/function', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => showOutput(action, data))
+      .catch(err => alert('Request failed: ' + err));
+    }
+
+    function showOutput(action, data) {
+      const out = document.getElementById('output');
+      let msg = `<strong>${action}</strong><br>`;
+      if (data.success) {
+        msg += `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+      } else {
+        msg += `<div style="color:red;">Error: ${data.error}</div>`;
+        if (data.trace) msg += `<pre>${data.trace}</pre>`;
+      }
+      out.innerHTML = msg;
+    }
+  </script>
+</body>
+</html>

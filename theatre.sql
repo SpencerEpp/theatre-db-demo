@@ -6,6 +6,41 @@
 --========================================================================================
 
 --========================================================================================
+-- Setup (Drop everything cleanly)
+--========================================================================================
+DROP TRIGGER IF EXISTS trg_AddPlayCostTransaction;
+DROP TRIGGER IF EXISTS trg_AutoTransactionOnDuesPayment;
+
+DROP PROCEDURE IF EXISTS AddPlayToProduction;
+DROP PROCEDURE IF EXISTS UndoPlayFromProduction;
+DROP PROCEDURE IF EXISTS AddProductionExpense;
+DROP PROCEDURE IF EXISTS UndoProductionExpense;
+DROP PROCEDURE IF EXISTS AddDuesInstallment;
+DROP PROCEDURE IF EXISTS UndoDuesInstallment;
+DROP PROCEDURE IF EXISTS PurchaseTicket;
+DROP PROCEDURE IF EXISTS UndoTicketPurchase;
+DROP PROCEDURE IF EXISTS GetProductionFinancialSummary;
+
+DROP FUNCTION IF EXISTS GetTotalPaidForDues;
+
+DROP TABLE IF EXISTS
+    Financial_Transaction,
+    Member_Meeting,
+    Meeting,
+    Ticket,
+    Seat,
+    Patron,
+    Production_Sponsor,
+    Sponsor,
+    DuesPayment,
+    DuesOwed,
+    Member_Production,
+    Member,
+    Production_Play,
+    Production,
+    Play;
+
+--========================================================================================
 -- DDL Statements
 --========================================================================================
 
