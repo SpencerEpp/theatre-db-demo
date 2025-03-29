@@ -405,6 +405,21 @@ BEGIN
 END //
 DELIMITER ;
 
+-- This trigger automatically updates the total cost of a production when a play is added to it
+-- DELIMITER //
+-- CREATE TRIGGER trg_AddPlayCostTransaction
+-- AFTER INSERT ON Production_Play
+-- FOR EACH ROW
+-- BEGIN
+--     DECLARE playCost DECIMAL(12,2);
+--     SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
+
+--     INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description) 
+--     VALUES ('E', playCost, CURRENT_DATE, NEW.ProductionID, CONCAT('Base licensing cost for play added to production')
+--     );
+-- END //
+-- DELIMITER ;
+
 -- This trigger is used to create a transaction automatically when a dues payment is made.
 DELIMITER //
 CREATE TRIGGER trg_AutoTransactionOnDuesPayment
@@ -434,20 +449,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- This trigger automatically updates the total cost of a production when a play is added to it
-DELIMITER //
-CREATE TRIGGER trg_AddPlayCostTransaction
-AFTER INSERT ON Production_Play
-FOR EACH ROW
-BEGIN
-    DECLARE playCost DECIMAL(12,2);
-    SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
 
-    INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description) 
-    VALUES ('E', playCost, CURRENT_DATE, NEW.ProductionID, CONCAT('Base licensing cost for play added to production')
-    );
-END //
-DELIMITER ;
 
 --========================================================================================
 -- Views
