@@ -22,7 +22,7 @@ CREATE TABLE Play (
 -- Creating the Production table
 CREATE TABLE Production (
     ProductionID INT PRIMARY KEY,
-    ProductionDate DATE NOT NULL
+    ProductionDate DATE NOT NULL,
     TotalCost DECIMAL(12,2) GENERATED ALWAYS AS (
         (SELECT COALESCE(SUM(p.Cost), 0)
          FROM Production_Play pp
@@ -78,7 +78,7 @@ CREATE TABLE DuesPayment (
     PaymentID INT PRIMARY KEY AUTO_INCREMENT,
     DuesID INT NOT NULL,
     AmountPaid DECIMAL(6,2) NOT NULL,
-    PaymentDate DATE NOT NULL DEFAULT CURRENT_DATE,
+    PaymentDate DATE NOT NULL DEFAULT (CURRENT_DATE),
     FOREIGN KEY (DuesID) REFERENCES DuesOwed(DuesID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -125,7 +125,7 @@ CREATE TABLE Ticket (
     ReservationDeadline DATE NULL,
     FOREIGN KEY (ProductionID) REFERENCES Production(ProductionID) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (PatronID) REFERENCES Patron(PatronID) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE (ProductionID, SeatID) -- Prevent duplicate ticket entries per production/seat
 );
 
@@ -405,6 +405,21 @@ BEGIN
 END //
 DELIMITER ;
 
+-- This trigger automatically updates the total cost of a production when a play is added to it
+-- DELIMITER //
+-- CREATE TRIGGER trg_AddPlayCostTransaction
+-- AFTER INSERT ON Production_Play
+-- FOR EACH ROW
+-- BEGIN
+--     DECLARE playCost DECIMAL(12,2);
+--     SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
+
+--     INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description) 
+--     VALUES ('E', playCost, CURRENT_DATE, NEW.ProductionID, CONCAT('Base licensing cost for play added to production')
+--     );
+-- END //
+-- DELIMITER ;
+
 -- This trigger is used to create a transaction automatically when a dues payment is made.
 DELIMITER //
 CREATE TRIGGER trg_AutoTransactionOnDuesPayment
@@ -434,20 +449,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- This trigger automatically updates the total cost of a production when a play is added to it
-DELIMITER //
-CREATE TRIGGER trg_AddPlayCostTransaction
-AFTER INSERT ON Production_Play
-FOR EACH ROW
-BEGIN
-    DECLARE playCost DECIMAL(12,2);
-    SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
 
-    INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description) 
-    VALUES ('E', playCost, CURRENT_DATE, NEW.ProductionID, CONCAT('Base licensing cost for play added to production')
-    );
-END //
-DELIMITER ;
 
 --========================================================================================
 -- Views
