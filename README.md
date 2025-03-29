@@ -6,13 +6,13 @@ This is a single-page Flask app to demo a fully interactive theatre database wit
 
 ## ACCESS GUIDE (For Teammates/Reviewers)
 
-Visit the Live App: https://
+Visit the Live App: [theatre-db-demo-production.up.railway.app](https://theatre-db-demo-production.up.railway.app/)
 
 ---
 
 ## Live Deployment (Railway + MySQL)
 ### What’s hosted:
-- Flask app (`app.py`) → deployed on [Railway](https://)
+- Flask app (`app.py`) → deployed on [Railway](https://railway.app)
 - MySQL database → provisioned via Railway MySQL plugin
 - Source code → hosted on GitHub
 
@@ -34,8 +34,7 @@ Visit the Live App: https://
 During MySQL install, select **MySQL Server** and **MySQL Shell** components only (Workbench optional).
 
 ---
-
-## Setup
+### Instructions
 1. Clone this repository, Run command: git clone https://github.com/yourusername/theatre-db-demo.git
 2. Cd to project, Run command: cd theatre-db-demo
 
@@ -47,24 +46,26 @@ Note: 2 and 3 are optional but recommended.
 
 6. Deploy Railway: 
     a) Go to [https://railway.app](https://railway.app)
-    b) Create a new project and deploy it from your GitHub repo
-    c) Add a **MySQL Plugin** to the project
-    d) Go to your Flask service in Railway → `Variables` and add:
+    b) Create a new project and deploy it from your GitHub repo (main.py should be in project root folder)
+    c) Set the start command in repo settings on railway: python main.py
+    d) In the same settings you can generate URL or supply your own domain
+    e) Add a **MySQL Plugin** to the project
+    f) Go to your Flask service in Railway → `Variables` and add:
         ```
         MYSQLHOST = ${mysql.MYSQLHOST}
         MYSQLUSER = ${mysql.MYSQLUSER}
         MYSQLPASSWORD = ${mysql.MYSQLPASSWORD}
         MYSQLDATABASE = ${mysql.MYSQLDATABASE}
         MYSQLPORT = ${mysql.MYSQLPORT}
-        ```
-    e) Set the start command: python app.py 
+        ``` 
+    g) Deploy the project
 
-7. Load the Database Schema (via Railway CLI + DBeaver):
-    a) Run command in bash not venv: npm install -g @railway/cli
+7. Load the Database Schema (via Railway CLI):
+    a) Run command in bash not venv: npm install -g @railway/cli (if not already installed)
     b) Run command in bash: railway login
     c) Run command in bash: railway link
     d) Run command in bash: railway connect mysql
-        > This will say: `Connected to mysql plugin on port 12345` — leave this terminal open!
+     — leave this terminal open!
 
 8. Run the schema file:
     - Run command in bash: mysql -h nozomi.proxy.rlwy.net -u root -p **** --port 43504 --protocol=TCP railway  
