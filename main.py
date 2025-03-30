@@ -33,9 +33,13 @@ def call_procedure(proc_name, args=()):
         cursor = conn.cursor()
         print(f"Calling procedure: {proc_name} with args: {args}")
         cursor.callproc(proc_name, args)
+        print("After callproc, about to commit.")
         conn.commit()
+        print("Commited.")
         results = []
         for result in cursor.stored_results():
+            fetched = result.fetchall()
+            print(f"Fetched result from {proc_name}: {fetched}")
             results.extend(result.fetchall())
         return {"success": True, "data": results or "Procedure executed successfully."}
     except Exception as e:
