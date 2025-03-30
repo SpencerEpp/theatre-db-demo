@@ -302,13 +302,13 @@ def procedure():
     if action not in args_map:
         return jsonify({"success": False, "error": f"Unknown procedure: {action}"})
 
-    return call_procedure(action, args_map[action])
+    return jsonify(call_procedure(action, args_map[action]))
 
 @app.route('/function', methods=['POST'])
 def function():
     if request.form.get("action") == "GetTotalPaidForDues":
         dues_id = int(sanitize_input(request.form['DuesID']))
-        return call_function("SELECT GetTotalPaidForDues(%s)", (dues_id,))
+        return jsonify(call_function("SELECT GetTotalPaidForDues(%s)", (dues_id,)))
     return jsonify({"success": False, "error": "Unknown function action"})
 
 @app.route('/admin/import-csv', methods=['POST'])
