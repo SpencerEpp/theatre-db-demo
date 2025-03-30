@@ -15,6 +15,39 @@
 <body>
   <h1>Theatre Admin Portal</h1>
 
+  <!-- Admin CSV Import Form -->
+  <div style="border: 2px solid #444; padding: 1em; margin-bottom: 2em; background-color: #f9f9f9;">
+    <h2 style="margin-top: 0;">🔐 Admin: Import CSV Data</h2>
+    <form onsubmit="submitImport(event)">
+      <label>
+        Secret Password:
+        <input type="password" name="admin_token" placeholder="Enter Admin Secret" required />
+      </label>
+      <button type="submit" style="margin-left: 1em;">📥 Import Now</button>
+    </form>
+  </div>
+
+  <script>
+    function submitImport(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+
+      fetch("/admin/import-csv", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message || data.error || "Done.");
+      })
+      .catch(err => {
+        alert("Import failed.");
+        console.error(err);
+      });
+    }
+  </script>
+
   <!-- Each section below corresponds to a procedure/function -->
   <h2>Create Play</h2>
   <form onsubmit="submitForm(event, 'CreatePlay')">
@@ -374,6 +407,60 @@
     <input name="StartDate" type="date" placeholder="Start Date (optional)">
     <input name="EndDate" type="date" placeholder="End Date (optional)">
     <button type="submit">Submit</button>
+  </form>
+
+  <!-- Below procedure calls are for Reports -->
+  <h2>Play Listing Report</h2>
+  <form onsubmit="submitForm(event, 'GetPlayListingReport')">
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <h2>Cast and Crew for Production</h2>
+  <form onsubmit="submitForm(event, 'GetProductionCastAndCrew')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <h2>Production Sponsors</h2>
+  <form onsubmit="submitForm(event, 'GetProductionSponsors')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <h2>Patron Report</h2>
+  <form onsubmit="submitForm(event, 'GetPatronReport')">
+    <input name="PatronID" type="number" placeholder="PatronID" required>
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <h2>Ticket Sales Report</h2>
+  <form onsubmit="submitForm(event, 'GetTicketSalesReport')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <h2>Unpaid Member Dues Report</h2>
+  <form onsubmit="submitForm(event, 'GetMemberDuesReport')">
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <!-- Smart Ticket Purchase -->
+  <h2>Smart Ticket Purchase</h2>
+  <form onsubmit="submitForm(event, 'SmartTicketPurchase')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="PatronID" type="number" placeholder="PatronID" required>
+    <input name="SeatIDs" placeholder="SeatIDs (e.g., [101,102,103])" required>
+    <input name="Deadline" type="date" required>
+    <input name="Price" type="number" step="0.01" placeholder="Ticket Price" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <!-- Suggest Alternate Seats -->
+  <h2>Suggest Alternate Seats</h2>
+  <form onsubmit="submitForm(event, 'SuggestAlternateSeats')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="SeatCount" type="number" placeholder="Number of Tickets" required>
+    <button type="submit">Suggest</button>
   </form>
 
   <h2>Get Total Paid For Dues (Function)</h2>

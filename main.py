@@ -9,6 +9,7 @@ import mysql.connector
 import traceback
 import html
 import os
+from import_csv_to_mysql import import_csv_data
 
 app = Flask(__name__)
 
@@ -263,10 +264,36 @@ def procedure():
         "GetMemberParticipation": [
             int(sanitize_input(request.form['MemberID']))
         ],
+        # Below is for Reports
+        "GetPlayListingReport": [],
+        "GetProductionCastAndCrew": [
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "GetProductionSponsors": [
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "GetPatronReport": [
+            int(sanitize_input(request.form['PatronID']))
+        ],
+        "GetTicketSalesReport": [
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "GetMemberDuesReport": [],
         "GetProductionFinancialSummary": [
             int(sanitize_input(request.form['ProductionID'])) if request.form['ProductionID'] else None,
             sanitize_input(request.form['StartDate']) if request.form['StartDate'] else None,
             sanitize_input(request.form['EndDate']) if request.form['EndDate'] else None
+        ],
+        "SmartTicketPurchase": [
+            int(sanitize_input(request.form['ProductionID'])),
+            int(sanitize_input(request.form['PatronID'])),
+            sanitize_input(request.form['SeatIDs']),  # Must be JSON string like "[101,102]"
+            sanitize_input(request.form['Deadline']),
+            float(sanitize_input(request.form['Price']))
+        ],
+        "SuggestAlternateSeats": [
+            int(sanitize_input(request.form['ProductionID'])),
+            int(sanitize_input(request.form['SeatCount']))
         ]
     }
 
@@ -281,6 +308,22 @@ def function():
         dues_id = int(sanitize_input(request.form['DuesID']))
         return jsonify(call_function("SELECT GetTotalPaidForDues(%s)", (dues_id,)))
     return jsonify({"success": False, "error": "Unknown function action"})
+
+@app.route('/admin/import-csv', methods=['POST'])
+def import_csv_route():
+    admin_token = request.form.get("admin_token")
+    expected_token = os.getenv("ADMIN_SECRET")
+
+    if admin_token != expected_token:
+        return jsonify({"success": False, "error": "Unauthorized"}), 403
+
+    try:
+        import_csv_data()
+        return jsonify({"success": True, "message": "CSV data imported successfully."})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+__all__ = ['db_config']
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

@@ -1,8 +1,4 @@
-STORED PROCEDURES TO ADD
-
-TRIGGERS TO ADD
-
-FUNCTIONS TO ADD
+FUNCTIONS TO ADD (IDK if we need these tbh, cuz idk whats going to use them)
     - GetDuesStatusForMember(memberID) → Paid vs Owed
     - GetTotalSponsorshipForProduction(productionID)
     - GetTotalTicketRevenue(productionID)
@@ -17,16 +13,5 @@ VIEWS TO CREATE (5+ required by spec)
     - vw_TicketSalesByProduction : Seat info, price, patron per production
     - vw_MemberDuesStatus : Member contact info + whether dues are paid
     - vw_ProductionBalanceSheet : Income + expenses per production
-
-REPORTS TO IMPLEMENT (3+ required — 8 suggested in PDF)
-Each of these should be generated via a view or stored procedure, and callable from Flask or shown as a download.
-    - Play Listing Report
-    - Program - Cast & Crew
-    - Program - Sponsors
-    - Patron Purchase History
-    - Ticket Sales Report
-    - Member Dues Report
-    - Production Balance Sheet
-    - Ticket Reservation Interaction (find available seats, reserve)
 
 Update the main.py and index.html to enable these features.

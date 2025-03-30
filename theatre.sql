@@ -18,6 +18,10 @@ DROP TRIGGER IF EXISTS trg_DeleteSponsorContributionTransaction;
 DROP TRIGGER IF EXISTS trg_DeletePlayCostTransaction;
 DROP TRIGGER IF EXISTS trg_SponsorContributionIncomeOnInsert;
 
+-- DB procedures
+DROP PROCEDURE IF EXISTS CreatePlay;
+DROP PROCEDURE IF EXISTS UpdatePlay;
+DROP PROCEDURE IF EXISTS DeletePlay;
 DROP PROCEDURE IF EXISTS CreateMember;
 DROP PROCEDURE IF EXISTS UpdateMember;
 DROP PROCEDURE IF EXISTS DeleteMember;
@@ -63,10 +67,19 @@ DROP PROCEDURE IF EXISTS ListTicketsForProduction;
 DROP PROCEDURE IF EXISTS GetMemberParticipation;
 DROP PROCEDURE IF EXISTS GetProductionFinancialSummary;
 
+-- Report procedures
+DROP PROCEDURE IF EXISTS GetPlayListingReport;
+DROP PROCEDURE IF EXISTS GetProductionCastAndCrew;
+DROP PROCEDURE IF EXISTS GetProductionSponsors;
+DROP PROCEDURE IF EXISTS GetPatronReport;
+DROP PROCEDURE IF EXISTS GetTicketSalesReport;
+DROP PROCEDURE IF EXISTS GetMemberDuesReport;
+DROP PROCEDURE IF EXISTS SuggestAlternateSeats;
+DROP PROCEDURE IF EXISTS SmartTicketPurchase;
+
 DROP FUNCTION IF EXISTS GetTotalPaidForDues;
 
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS Transaction;
 DROP TABLE IF EXISTS Financial_Transaction;
 DROP TABLE IF EXISTS Member_Meeting;
 DROP TABLE IF EXISTS Meeting;
@@ -271,7 +284,7 @@ DELIMITER ;
 
 -- UPDATE PLAY
 DELIMITER //
-CREATE PROCEDURE UpdatePlay (
+CREATE PROCEDURE UpdatePlay ( 
     IN in_PlayID INT,
     IN in_Title VARCHAR(100),
     IN in_Author VARCHAR(255),
@@ -1001,6 +1014,223 @@ BEGIN
         AND (in_StartDate IS NULL OR p.ProductionDate >= in_StartDate)
         AND (in_EndDate IS NULL OR p.ProductionDate <= in_EndDate)
     GROUP BY p.ProductionID, p.ProductionDate;
+END //
+DELIMITER ;
+
+-- =========================
+-- REPORT PROCEDURES
+-- =========================
+
+-- Play Listing Report
+DELIMITER //
+CREATE PROCEDURE GetPlayListingReport()
+BEGIN
+    SELECT 
+        Genre,
+        Author,
+        COUNT(*) AS TotalPlays,
+        AVG(Cost) AS AverageLicensingCost,
+        SUM(NumberOfActs) AS TotalActs
+    FROM Play
+    GROUP BY Genre, Author
+    ORDER BY Genre, Author;
+END //
+DELIMITER ;
+
+-- Program - Cast and Crew
+DELIMITER //
+CREATE PROCEDURE GetProductionCastAndCrew(IN in_ProductionID INT)
+BEGIN
+    SELECT 
+        m.Name,
+        m.Email,
+        m.Role AS DefaultRole,
+        mp.Role AS ProductionRole
+    FROM Member_Production mp
+    JOIN Member m ON mp.MemberID = m.MemberID
+    WHERE mp.ProductionID = in_ProductionID
+    ORDER BY mp.Role, m.Name;
+END //
+DELIMITER ;
+
+-- Program - Sponsors
+DELIMITER //
+CREATE PROCEDURE GetProductionSponsors(IN in_ProductionID INT)
+BEGIN
+    SELECT 
+        s.Name,
+        s.Type,
+        ps.ContributionAmount
+    FROM Production_Sponsor ps
+    JOIN Sponsor s ON ps.SponsorID = s.SponsorID
+    WHERE ps.ProductionID = in_ProductionID;
+
+    SELECT 
+        COUNT(*) AS TotalSponsors,
+        SUM(ContributionAmount) AS TotalContributions,
+        SUM(CASE WHEN s.Type = 'C' THEN ps.ContributionAmount ELSE 0 END) AS CompanyContributions,
+        SUM(CASE WHEN s.Type = 'I' THEN ps.ContributionAmount ELSE 0 END) AS IndividualContributions
+    FROM Production_Sponsor ps
+    JOIN Sponsor s ON ps.SponsorID = s.SponsorID
+    WHERE ps.ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- Patron Report
+DELIMITER //
+CREATE PROCEDURE GetPatronReport(IN in_PatronID INT)
+BEGIN
+    SELECT 
+        p.Name,
+        p.Email,
+        p.Address,
+        COUNT(t.TicketID) AS TicketsPurchased,
+        SUM(t.Price) AS TotalSpent
+    FROM Patron p
+    LEFT JOIN Ticket t ON p.PatronID = t.PatronID
+    WHERE p.PatronID = in_PatronID
+    GROUP BY p.PatronID;
+
+    SELECT 
+        t.TicketID,
+        t.ProductionID,
+        t.SeatID,
+        t.Price,
+        t.Status,
+        t.ReservationDeadline
+    FROM Ticket t
+    WHERE t.PatronID = in_PatronID;
+END //
+DELIMITER ;
+
+-- Ticket Sales Report
+DELIMITER //
+CREATE PROCEDURE GetTicketSalesReport(IN in_ProductionID INT)
+BEGIN
+    SELECT 
+        t.TicketID,
+        s.SeatRow,
+        s.Number AS SeatNumber,
+        t.Price,
+        t.Status,
+        p.Name AS Buyer
+    FROM Ticket t
+    JOIN Seat s ON t.SeatID = s.SeatID
+    LEFT JOIN Patron p ON t.PatronID = p.PatronID
+    WHERE t.ProductionID = in_ProductionID
+    ORDER BY s.SeatRow, s.Number;
+
+    SELECT 
+        COUNT(*) AS TotalTickets,
+        SUM(CASE WHEN t.Status = 'S' THEN 1 ELSE 0 END) AS SoldTickets,
+        SUM(CASE WHEN t.Status = 'S' THEN t.Price ELSE 0 END) AS TotalRevenue,
+        ROUND(AVG(t.Price), 2) AS AverageTicketPrice
+    FROM Ticket t
+    WHERE t.ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- Member Dues Report
+DELIMITER //
+CREATE PROCEDURE GetMemberDuesReport()
+BEGIN
+    SELECT 
+        m.MemberID,
+        m.Name,
+        m.Email,
+        d.Year,
+        d.TotalDue,
+        IFNULL(GetTotalPaidForDues(d.DuesID), 0) AS PaidSoFar,
+        (d.TotalDue - IFNULL(GetTotalPaidForDues(d.DuesID), 0)) AS RemainingBalance
+    FROM DuesOwed d
+    JOIN Member m ON d.MemberID = m.MemberID
+    WHERE d.TotalDue > IFNULL(GetTotalPaidForDues(d.DuesID), 0)
+    ORDER BY d.Year, m.Name;
+END //
+DELIMITER ;
+
+-- =========================================
+-- SMART TICKET PURCHASE + FALLBACK SUPPORT
+-- =========================================
+
+-- Smart multi-seat ticket purchase
+DELIMITER //
+CREATE PROCEDURE SmartTicketPurchase(
+    IN in_ProductionID INT,
+    IN in_PatronID INT,
+    IN in_SeatIDs TEXT, -- e.g. '[1,2,3]'
+    IN in_Deadline DATE,
+    IN in_Price DECIMAL(6,2)
+)
+BEGIN
+    -- === 1. Declare variables ===
+    DECLARE seat_id INT;
+    DECLARE ticket_id INT;
+    DECLARE done INT DEFAULT FALSE;
+
+    -- === 2. Declare cursor ===
+    DECLARE seat_cursor CURSOR FOR 
+        SELECT CAST(value AS UNSIGNED) 
+        FROM JSON_TABLE(in_SeatIDs, '$[*]' COLUMNS(value INT PATH '$')) AS jt;
+
+    -- === 3. Declare handlers ===
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- === 4. Setup temp error table ===
+    DROP TEMPORARY TABLE IF EXISTS TempErrors;
+    CREATE TEMPORARY TABLE TempErrors (
+        Message VARCHAR(255)
+    );
+
+    -- === 5. Open and process cursor ===
+    OPEN seat_cursor;
+    seat_loop: LOOP
+        FETCH seat_cursor INTO seat_id;
+        IF done THEN LEAVE seat_loop; END IF;
+
+        -- Check if the seat is available
+        SELECT TicketID INTO ticket_id
+        FROM Ticket
+        WHERE ProductionID = in_ProductionID AND SeatID = seat_id AND Status = 'A'
+        LIMIT 1;
+
+        IF ticket_id IS NOT NULL THEN
+            UPDATE Ticket
+            SET PatronID = in_PatronID,
+                Price = in_Price,
+                Status = 'S',
+                ReservationDeadline = in_Deadline
+            WHERE TicketID = ticket_id;
+
+            INSERT INTO Financial_Transaction (Type, Amount, Date, TicketID, ProductionID, Description)
+            VALUES ('I', in_Price, CURRENT_DATE, ticket_id, in_ProductionID, 'Smart Ticket Purchase');
+        ELSE
+            INSERT INTO TempErrors (Message)
+            VALUES (CONCAT('Seat ID ', seat_id, ' is not available.'));
+        END IF;
+    END LOOP;
+    CLOSE seat_cursor;
+
+    -- Return all errors
+    SELECT * FROM TempErrors;
+END //
+DELIMITER ;
+
+
+-- Suggest fallback seats based on row/number ordering
+DELIMITER //
+CREATE PROCEDURE SuggestAlternateSeats(
+    IN in_ProductionID INT,
+    IN in_SeatCount INT
+)
+BEGIN
+    SELECT t.SeatID, s.SeatRow, s.Number
+    FROM Ticket t
+    JOIN Seat s ON t.SeatID = s.SeatID
+    WHERE t.ProductionID = in_ProductionID
+      AND t.Status = 'A'
+    ORDER BY s.SeatRow, s.Number
+    LIMIT in_SeatCount;
 END //
 DELIMITER ;
 
