@@ -1366,6 +1366,110 @@ DELIMITER ;
 -- Views
 -- ========================================================================================
 
+-- View all plays with author, genre and act count
+CREATE VIEW vw_PlayListing AS
+SELECT 
+    PlayID, 
+    Title, 
+    Author, 
+    Genre, 
+    NumberOfActs
+FROM Play;
+
+
+-- View list members and roles for each production
+CREATE VIEW vw_CastCrewByProduction AS
+SELECT 
+    mp.ProductionID,
+    p.ProductionDate,
+    m.MemberID,
+    m.Name AS MemberName,
+    m.Email,
+    mp.Role AS ProductionRole
+FROM Member_Production mp
+JOIN Production p ON mp.ProductionID = p.ProductionID
+JOIN Member m ON mp.MemberID = m.MemberID;
+
+
+-- View sponsor names and amounts by production
+CREATE VIEW vw_SponsorContributions AS
+SELECT 
+    ps.ProductionID,
+    s.SponsorID,
+    s.Name AS SponsorName,
+    s.Type,
+    ps.ContributionAmount
+FROM Production_Sponsor ps
+JOIN Sponsor s ON ps.SponsorID = s.SponsorID;
+
+
+-- View patron name, tickets purchased and productions
+CREATE VIEW vw_PatronHistory AS
+SELECT 
+    pat.PatronID,
+    pat.Name AS PatronName,
+    t.TicketID,
+    t.ProductionID,
+    prod.ProductionDate,
+    t.SeatID,
+    t.Price,
+    t.Status,
+    t.ReservationDeadline
+FROM Patron pat
+LEFT JOIN Ticket t ON pat.PatronID = t.PatronID
+LEFT JOIN Production prod ON t.ProductionID = prod.ProductionID;
+
+
+-- View seat info, price and patron per production
+CREATE VIEW vw_TicketSalesByProduction AS
+SELECT 
+    t.ProductionID,
+    t.TicketID,
+    s.SeatRow,
+    s.Number AS SeatNumber,
+    t.Price,
+    t.Status,
+    p.Name AS PatronName,
+    p.Email AS PatronEmail
+FROM Ticket t
+JOIN Seat s ON t.SeatID = s.SeatID
+LEFT JOIN Patron p ON t.PatronID = p.PatronID;
+
+
+-- View member contact info and dues status(paid/not paid)
+CREATE VIEW vw_MemberDuesStatus AS
+SELECT 
+    m.MemberID,
+    m.Name,
+    m.Email,
+    m.Phone,
+    m.Address,
+    d.Year,
+    d.TotalDue,
+    IFNULL(
+      (SELECT SUM(AmountPaid) FROM DuesPayment WHERE DuesID = d.DuesID), 0
+    ) AS PaidSoFar,
+    CASE 
+      WHEN IFNULL((SELECT SUM(AmountPaid) FROM DuesPayment WHERE DuesID = d.DuesID), 0) >= d.TotalDue 
+        THEN 'Paid' 
+      ELSE 'Not Paid' 
+    END AS DuesStatus
+FROM Member m
+JOIN DuesOwed d ON m.MemberID = d.MemberID;
+
+
+-- View income and expenses per production
+CREATE VIEW vw_ProductionBalanceSheet AS
+SELECT 
+    p.ProductionID,
+    p.ProductionDate,
+    COALESCE(SUM(CASE WHEN ft.Type = 'I' THEN ft.Amount END), 0) AS TotalIncome,
+    COALESCE(SUM(CASE WHEN ft.Type = 'E' THEN ft.Amount END), 0) AS TotalExpenses,
+    COALESCE(SUM(CASE WHEN ft.Type = 'I' THEN ft.Amount END), 0) - 
+    COALESCE(SUM(CASE WHEN ft.Type = 'E' THEN ft.Amount END), 0) AS NetBalance
+FROM Production p
+LEFT JOIN Financial_Transaction ft ON p.ProductionID = ft.ProductionID
+GROUP BY p.ProductionID, p.ProductionDate;
 
 
 -- ========================================================================================
