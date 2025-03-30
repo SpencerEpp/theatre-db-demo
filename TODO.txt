@@ -5,7 +5,7 @@ FUNCTIONS TO ADD (IDK if we need these tbh, cuz idk whats going to use them)
     - GetNetBalance(productionID) — alt to current summary proc
     - GetPatronPurchaseHistory(patronID)
 
-VIEWS TO CREATE (5+ required by spec)
+VIEWS (Update the main.py and index.html to enable these features.)
     - vw_PlayListing : All plays with author, genre, and act count
     - vw_CastCrewByProduction : Lists members and roles for each production
     - vw_SponsorContributions : Sponsor names and amounts by production
@@ -14,4 +14,3 @@ VIEWS TO CREATE (5+ required by spec)
     - vw_MemberDuesStatus : Member contact info + whether dues are paid
     - vw_ProductionBalanceSheet : Income + expenses per production
 
-Update the main.py and index.html to enable these features.
