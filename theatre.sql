@@ -744,18 +744,16 @@ CREATE PROCEDURE AddPlayToProduction (
     IN in_PlayID INT
 )
 BEGIN
-    -- Prevent duplicate insert
     IF EXISTS (
         SELECT 1 FROM Production_Play
         WHERE ProductionID = in_ProductionID AND PlayID = in_PlayID
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'This play is already linked to the production.';
+    ELSE
+        INSERT INTO Production_Play (ProductionID, PlayID)
+        VALUES (in_ProductionID, in_PlayID);
     END IF;
-
-    -- Add the play to the production (triggers the base cost transaction)
-    INSERT INTO Production_Play (ProductionID, PlayID)
-    VALUES (in_ProductionID, in_PlayID);
 END //
 DELIMITER ;
 
