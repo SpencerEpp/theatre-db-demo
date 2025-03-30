@@ -44,9 +44,9 @@ if you are updating the schema follow steps 7-10.<br>
 1. Clone this repository, Run command: git clone https://github.com/yourusername/theatre-db-demo.git<br>
 2. Cd to project, Run command: cd theatre-db-demo<br>
 
-Note: 2 and 3 are optional but recommended.<br>
-3. Run command: python -m venv venv<br>
-4. Run command: venv\Scripts\activate<br>
+&nbsp;Note: 2 and 3 are optional but recommended.<br>
+&nbsp;3. Run command: python -m venv venv<br>
+&nbsp;4. Run command: venv\Scripts\activate<br>
 
 5. Run command: pip install -r requirements.txt<br> 
 
@@ -57,13 +57,12 @@ Note: 2 and 3 are optional but recommended.<br>
     d) In the same settings you can generate URL or supply your own domain<br>
     e) Add a **MySQL Plugin** to the project<br>
     f) Go to your Flask service in Railway → `Variables` and add:<br>
-        ```<br>
-        MYSQLHOST = ${mysql.MYSQLHOST}<br>
-        MYSQLUSER = ${mysql.MYSQLUSER}<br>
-        MYSQLPASSWORD = ${mysql.MYSQLPASSWORD}<br>
-        MYSQLDATABASE = ${mysql.MYSQLDATABASE}<br>
-        MYSQLPORT = ${mysql.MYSQLPORT}<br>
-        ```<br> 
+    &nbsp;MYSQLHOST = ${mysql.MYSQLHOST}<br>
+    &nbsp;MYSQLUSER = ${mysql.MYSQLUSER}<br>
+    &nbsp;MYSQLPASSWORD = ${mysql.MYSQLPASSWORD}<br>
+    &nbsp;MYSQLDATABASE = ${mysql.MYSQLDATABASE}<br>
+    &nbsp;MYSQLPORT = ${mysql.MYSQLPORT}<br>
+
     g) Deploy the project<br>
 
 7. Open MySQL Workbench, and connect to the db (found in 'Connect to the database MySQL' under the data tab in the MySQL block)<br>
