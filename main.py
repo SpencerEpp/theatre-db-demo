@@ -68,14 +68,14 @@ def procedure():
     print("Action received:", action)
 
     args_map = {
-        "CreatePlay": [
+        "CreatePlay": lambda: [
             sanitize_input(request.form['Title']),
             sanitize_input(request.form['Author']),
             sanitize_input(request.form['Genre']),
             int(sanitize_input(request.form['NumberOfActs'])),
             float(sanitize_input(request.form['Cost']))
         ],
-        "UpdatePlay": [
+        "UpdatePlay": lambda: [
             int(sanitize_input(request.form['PlayID'])),
             sanitize_input(request.form['Title']),
             sanitize_input(request.form['Author']),
@@ -83,17 +83,17 @@ def procedure():
             int(sanitize_input(request.form['NumberOfActs'])),
             float(sanitize_input(request.form['Cost']))
         ],
-        "DeletePlay": [
+        "DeletePlay": lambda: [
             int(sanitize_input(request.form['PlayID']))
         ],
-        "CreateMember": [
+        "CreateMember": lambda: [
             sanitize_input(request.form['Name']),
             sanitize_input(request.form['Email']),
             sanitize_input(request.form['Phone']),
             sanitize_input(request.form['Address']),
             sanitize_input(request.form['Role'])
         ],
-        "UpdateMember": [
+        "UpdateMember": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             sanitize_input(request.form['Name']),
             sanitize_input(request.form['Email']),
@@ -101,209 +101,209 @@ def procedure():
             sanitize_input(request.form['Address']),
             sanitize_input(request.form['Role'])
         ],
-        "DeleteMember": [
+        "DeleteMember": lambda: [
             int(sanitize_input(request.form['MemberID']))
         ],
-        "AssignMemberToProduction": [
+        "AssignMemberToProduction": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             int(sanitize_input(request.form['ProductionID'])),
             sanitize_input(request.form['Role'])
         ],
-        "RemoveMemberFromProduction": [
+        "RemoveMemberFromProduction": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "CreateProduction": [
+        "CreateProduction": lambda: [
             sanitize_input(request.form['ProductionDate'])
         ],
-        "UpdateProduction": [
+        "UpdateProduction": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             sanitize_input(request.form['ProductionDate'])
         ],
-        "DeleteProduction": [
+        "DeleteProduction": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "LinkSponsorToProduction": [
+        "LinkSponsorToProduction": lambda: [
             int(sanitize_input(request.form['SponsorID'])),
             int(sanitize_input(request.form['ProductionID'])),
             float(sanitize_input(request.form['Amount']))
         ],
-        "UnlinkSponsorFromProduction": [
+        "UnlinkSponsorFromProduction": lambda: [
             int(sanitize_input(request.form['SponsorID'])),
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "CreateTicket": [
+        "CreateTicket": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['SeatID'])),
             float(sanitize_input(request.form['Price'])),
             sanitize_input(request.form['ReservationDeadline']) if request.form['ReservationDeadline'] else None
         ],
-        "ReleaseTicket": [
+        "ReleaseTicket": lambda: [
             int(sanitize_input(request.form['TicketID']))
         ],
-        "UpdateTicketStatus": [
+        "UpdateTicketStatus": lambda: [
             int(sanitize_input(request.form['TicketID'])),
             sanitize_input(request.form['Status'])
         ],
-        "UpdateTicketPrice": [
+        "UpdateTicketPrice": lambda: [
             int(sanitize_input(request.form['TicketID'])),
             float(sanitize_input(request.form['NewPrice']))
         ],
-        "CancelReservation": [
+        "CancelReservation": lambda: [
             int(sanitize_input(request.form['TicketID']))
         ],
-        "CreateSponsor": [
+        "CreateSponsor": lambda: [
             sanitize_input(request.form['Name']),
             sanitize_input(request.form['Type'])
         ],
-        "UpdateSponsor": [
+        "UpdateSponsor": lambda: [
             int(sanitize_input(request.form['SponsorID'])),
             sanitize_input(request.form['Name']),
             sanitize_input(request.form['Type'])
         ],
-        "DeleteSponsor": [
+        "DeleteSponsor": lambda: [
             int(sanitize_input(request.form['SponsorID']))
         ],
-        "CreatePatron": [
+        "CreatePatron": lambda: [
             sanitize_input(request.form['Name']),
             sanitize_input(request.form['Email']),
             sanitize_input(request.form['Address'])
         ],
-        "UpdatePatron": [
+        "UpdatePatron": lambda: [
             int(sanitize_input(request.form['PatronID'])),
             sanitize_input(request.form['Name']),
             sanitize_input(request.form['Email']),
             sanitize_input(request.form['Address'])
         ],
-        "DeletePatron": [
+        "DeletePatron": lambda: [
             int(sanitize_input(request.form['PatronID']))
         ],
-        "CreateMeeting": [
+        "CreateMeeting": lambda: [
             sanitize_input(request.form['Type']),
             sanitize_input(request.form['Date'])
         ],
-        "UpdateMeeting": [
+        "UpdateMeeting": lambda: [
             int(sanitize_input(request.form['MeetingID'])),
             sanitize_input(request.form['Type']),
             sanitize_input(request.form['Date'])
         ],
-        "DeleteMeeting": [
+        "DeleteMeeting": lambda: [
             int(sanitize_input(request.form['MeetingID']))
         ],
-        "AssignMemberToMeeting": [
+        "AssignMemberToMeeting": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             int(sanitize_input(request.form['MeetingID']))
         ],
-        "RemoveMemberFromMeeting": [
+        "RemoveMemberFromMeeting": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             int(sanitize_input(request.form['MeetingID']))
         ],
-        "CreateDuesRecord": [
+        "CreateDuesRecord": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             int(sanitize_input(request.form['Year'])),
             float(sanitize_input(request.form['TotalAmount']))
         ],
-        "DeleteDuesRecord": [
+        "DeleteDuesRecord": lambda: [
             int(sanitize_input(request.form['DuesID']))
         ],
-        "CheckSeatAvailability": [
+        "CheckSeatAvailability": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['SeatID']))
         ],
-        "ReserveTicket": [
+        "ReserveTicket": lambda: [
             int(sanitize_input(request.form['TicketID'])),
             int(sanitize_input(request.form['PatronID'])),
             sanitize_input(request.form['Deadline']) if request.form['Deadline'] else None
         ],
-        "CreateSeat": [
+        "CreateSeat": lambda: [
             sanitize_input(request.form['SeatRow']),
             int(sanitize_input(request.form['Number']))
         ],
-        "UpdateSeat": [
+        "UpdateSeat": lambda: [
             int(sanitize_input(request.form['SeatID'])),
             sanitize_input(request.form['SeatRow']),
             int(sanitize_input(request.form['Number']))
         ],
-        "DeleteSeat": [
+        "DeleteSeat": lambda: [
             int(sanitize_input(request.form['SeatID']))
         ],
-        "AddPlayToProduction": [
+        "AddPlayToProduction": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['PlayID']))
         ],
-        "UndoPlayFromProduction": [
+        "UndoPlayFromProduction": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['PlayID']))
         ],
-        "AddProductionExpense": [
+        "AddProductionExpense": lambda: [
             float(sanitize_input(request.form['Amount'])),
             sanitize_input(request.form['Date']),
             int(sanitize_input(request.form['ProductionID'])),
             sanitize_input(request.form['Description'])
         ],
-        "UndoProductionExpense": [
+        "UndoProductionExpense": lambda: [
             int(sanitize_input(request.form['TransactionID']))
         ],
-        "AddDuesInstallment": [
+        "AddDuesInstallment": lambda: [
             int(sanitize_input(request.form['MemberID'])),
             int(sanitize_input(request.form['Year'])),
             float(sanitize_input(request.form['Amount']))
         ],
-        "UndoDuesInstallment": [
+        "UndoDuesInstallment": lambda: [
             int(sanitize_input(request.form['PaymentID']))
         ],
-        "PurchaseTicket": [
+        "PurchaseTicket": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['SeatID'])),
             int(sanitize_input(request.form['PatronID'])) if request.form['PatronID'] else None,
             float(sanitize_input(request.form['Price']))
         ],
-        "UndoTicketPurchase": [
+        "UndoTicketPurchase": lambda: [
             int(sanitize_input(request.form['TicketID']))
         ],
-        "ListTicketsForProduction": [
+        "ListTicketsForProduction": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "GetMemberParticipation": [
+        "GetMemberParticipation": lambda: [
             int(sanitize_input(request.form['MemberID']))
         ],
         # Below is for Reports
-        "GetPlayListingReport": [],
-        "GetProductionCastAndCrew": [
+        "GetPlayListingReport": lambda: [],
+        "GetProductionCastAndCrew": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "GetProductionSponsors": [
+        "GetProductionSponsors": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "GetPatronReport": [
+        "GetPatronReport": lambda: [
             int(sanitize_input(request.form['PatronID']))
         ],
-        "GetTicketSalesReport": [
+        "GetTicketSalesReport": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "GetMemberDuesReport": [],
-        "GetProductionFinancialSummary": [
+        "GetMemberDuesReport": lambda: [],
+        "GetProductionFinancialSummary": lambda: [
             int(sanitize_input(request.form['ProductionID'])) if request.form['ProductionID'] else None,
             sanitize_input(request.form['StartDate']) if request.form['StartDate'] else None,
             sanitize_input(request.form['EndDate']) if request.form['EndDate'] else None
         ],
-        "SmartTicketPurchase": [
+        "SmartTicketPurchase": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['PatronID'])),
             sanitize_input(request.form['SeatIDs']),  # Must be JSON string like "[101,102]"
             sanitize_input(request.form['Deadline']),
             float(sanitize_input(request.form['Price']))
         ],
-        "SuggestAlternateSeats": [
+        "SuggestAlternateSeats": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['SeatCount']))
         ]
     }
 
+    print(f"About to run call_procedure() with {action} and {args_map[action]}")
     if action not in args_map:
         return jsonify({"success": False, "error": f"Unknown procedure: {action}"})
 
-    print(f"About to run call_procedure() with {action} and {args_map[action]}")
     return call_procedure(action, args_map[action])
 
 @app.route('/function', methods=['POST'])
