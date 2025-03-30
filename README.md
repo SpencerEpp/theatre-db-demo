@@ -12,31 +12,32 @@ Visit the Live App: [theatre-db-demo-production.up.railway.app](https://theatre-
 
 ## Live Deployment (Railway + MySQL)
 ### What’s hosted:
-- Flask app (`app.py`) → deployed on [Railway](https://railway.app)
+- Flask app (`main.py`) → deployed on [Railway](https://railway.app)
 - MySQL database → provisioned via Railway MySQL plugin
 - Source code → hosted on GitHub
 
-| What            | Tool                      |
-|-----------------|---------------------------|
-| Backend         | Flask (`app.py`)          |
-| Frontend        | HTML/JS (`index.html`)    |
-| Database        | MySQL (via Railway plugin)|
-| Hosting         | Railway (GitHub-linked)   |
-| Schema Import   | Railway CLI               |
+| What            | Tool                                        |
+|-----------------|---------------------------------------------|
+| Backend         | Flask (`main.py`)                           |
+| Frontend        | HTML/JS (`index.html`)                      |
+| Database        | MySQL (via Railway plugin)                  |
+| Hosting         | Railway (GitHub-linked)                     |
+| Schema Import   | MySQL Workbench connection to Railway       |
+| Data Import     | Data hosted on repo, import button on webapp|
 
 ---
 
-## FULL SETUP GUIDE (For Project Owner)
+## FULL SETUP GUIDE (From scratch)
 ### Required Downloads
 - [Python 3.10+](https://www.python.org/downloads/)
 - [Node.js (for Railway CLI)](https://nodejs.org/)
-- [MySQL Server (Windows Installer)](https://dev.mysql.com/downloads/installer/)
+- [MySQL (Windows Installer)](https://dev.mysql.com/downloads/installer/)
 During MySQL install, select **MySQL Server**, **MySQL Shell**, **MySQL Workbench**.
 
 ---
 ### Instructions
 
-If you just want to edit the code follow steps 1-5, if you are deploying a new project follow step 6,
+If you just want to edit the code follow steps 1-5, if you are deploying a new project follow all steps,
 if you are updating the schema follow steps 7-10.
 
 1. Clone this repository, Run command: git clone https://github.com/yourusername/theatre-db-demo.git
@@ -64,7 +65,7 @@ Note: 2 and 3 are optional but recommended.
         ``` 
     g) Deploy the project
 
-7. Open MySQL Workbench, and connect to the db
+7. Open MySQL Workbench, and connect to the db (found in 'Connect to the database MySQL' under the data tab in the MySQL block)
     - Connection Name: Railway
     - Host name: metro.proxy.rlwy.net
     - Port: 36017

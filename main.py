@@ -319,6 +319,21 @@ def function():
         return call_function("SELECT GetTotalPaidForDues(%s)", (dues_id,))
     return jsonify({"success": False, "error": "Unknown function action"})
 
+@app.route('/view', methods=['GET'])
+def get_view():
+    view_name = request.args.get('name')
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(f"SELECT * FROM {view_name}")
+        result = cursor.fetchall()
+        return jsonify({"success": True, "data": result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e), "trace": traceback.format_exc()})
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/admin/import-csv', methods=['POST'])
 def import_csv_route():
     admin_token = request.form.get("admin_token")

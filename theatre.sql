@@ -77,6 +77,14 @@ DROP PROCEDURE IF EXISTS GetMemberDuesReport;
 DROP PROCEDURE IF EXISTS SuggestAlternateSeats;
 DROP PROCEDURE IF EXISTS SmartTicketPurchase;
 
+DROP VIEW IF EXISTS vw_PlayListing
+DROP VIEW IF EXISTS vw_CastCrewByProduction
+DROP VIEW IF EXISTS vw_SponsorContributions
+DROP VIEW IF EXISTS vw_PatronHistory
+DROP VIEW IF EXISTS vw_TicketSalesByProduction
+DROP VIEW IF EXISTS vw_MemberDuesStatus
+DROP VIEW IF EXISTS vw_ProductionBalanceSheet
+
 DROP FUNCTION IF EXISTS GetTotalPaidForDues;
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -1376,7 +1384,6 @@ SELECT
     NumberOfActs
 FROM Play;
 
-
 -- View list members and roles for each production
 CREATE VIEW vw_CastCrewByProduction AS
 SELECT 
@@ -1390,7 +1397,6 @@ FROM Member_Production mp
 JOIN Production p ON mp.ProductionID = p.ProductionID
 JOIN Member m ON mp.MemberID = m.MemberID;
 
-
 -- View sponsor names and amounts by production
 CREATE VIEW vw_SponsorContributions AS
 SELECT 
@@ -1401,7 +1407,6 @@ SELECT
     ps.ContributionAmount
 FROM Production_Sponsor ps
 JOIN Sponsor s ON ps.SponsorID = s.SponsorID;
-
 
 -- View patron name, tickets purchased and productions
 CREATE VIEW vw_PatronHistory AS
@@ -1419,7 +1424,6 @@ FROM Patron pat
 LEFT JOIN Ticket t ON pat.PatronID = t.PatronID
 LEFT JOIN Production prod ON t.ProductionID = prod.ProductionID;
 
-
 -- View seat info, price and patron per production
 CREATE VIEW vw_TicketSalesByProduction AS
 SELECT 
@@ -1434,7 +1438,6 @@ SELECT
 FROM Ticket t
 JOIN Seat s ON t.SeatID = s.SeatID
 LEFT JOIN Patron p ON t.PatronID = p.PatronID;
-
 
 -- View member contact info and dues status(paid/not paid)
 CREATE VIEW vw_MemberDuesStatus AS
@@ -1456,7 +1459,6 @@ SELECT
     END AS DuesStatus
 FROM Member m
 JOIN DuesOwed d ON m.MemberID = d.MemberID;
-
 
 -- View income and expenses per production
 CREATE VIEW vw_ProductionBalanceSheet AS

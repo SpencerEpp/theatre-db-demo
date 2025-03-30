@@ -29,24 +29,7 @@
   </div>
 
   <script>
-    function submitImport(event) {
-      event.preventDefault();
-      const form = event.target;
-      const formData = new FormData(form);
-
-      fetch("/admin/import-csv", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message || data.error || "Done.");
-      })
-      .catch(err => {
-        alert("Import failed.");
-        console.error(err);
-      });
-    }
+    
   </script>
 
   <!-- Each section below corresponds to a procedure/function -->
@@ -470,10 +453,64 @@
     <button type="submit">Submit</button>
   </form>
 
+  <h2>View: All Plays</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_PlayListing')">
+    <button type="submit">Show All Plays</button>
+  </form>
+
+  <h2>View: Cast and Crew by Production</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_CastCrewByProduction')">
+    <button type="submit">Show Cast & Crew</button>
+  </form>
+
+  <h2>View: Sponsor Contributions</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_SponsorContributions')">
+    <button type="submit">Show Sponsor Contributions</button>
+  </form>
+
+  <h2>View: Patron Ticket History</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_PatronHistory')">
+    <button type="submit">Show Patron History</button>
+  </form>
+
+  <h2>View: Ticket Sales By Production</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_TicketSalesByProduction')">
+    <button type="submit">Show Ticket Sales</button>
+  </form>
+
+  <h2>View: Member Dues Status</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_MemberDuesStatus')">
+    <button type="submit">Show Member Dues Status</button>
+  </form>
+
+  <h2>View: Production Balance Sheet</h2>
+  <form onsubmit="submitViewQuery(event, 'vw_ProductionBalanceSheet')">
+    <button type="submit">Show Balance Sheet</button>
+  </form>
+
   <h2>Output</h2>
   <div id="output" class="output"></div>
 
   <script>
+    function submitImport(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+
+      fetch("/admin/import-csv", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message || data.error || "Done.");
+      })
+      .catch(err => {
+        alert("Import failed.");
+        console.error(err);
+      });
+    }
+
     function submitForm(event, action) {
       event.preventDefault();
       const form = event.target;
@@ -514,6 +551,14 @@
         if (data.trace) msg += `<pre>${data.trace}</pre>`;
       }
       out.innerHTML = msg;
+    }
+
+    function submitViewQuery(event, viewName) {
+      event.preventDefault();
+      fetch(`/view?name=${viewName}`)
+        .then(response => response.json())
+        .then(data => alert(JSON.stringify(data, null, 2)))
+        .catch(err => alert('Error: ' + err));
     }
   </script>
 </body>
