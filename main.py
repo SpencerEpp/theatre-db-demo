@@ -31,6 +31,7 @@ def call_procedure(proc_name, args=()):
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
+        print(f"Calling procedure: {proc_name} with args: {args}")
         cursor.callproc(proc_name, args)
         conn.commit()
         results = []
