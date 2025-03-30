@@ -1,0 +1,70 @@
+STORED PROCEDURES TO ADD
+
+Play Management
+    - CreatePlay(title, author, genre, acts, cost)
+    - UpdatePlay(playID, ...)
+    - DeletePlay(playID)
+
+👥 Member Management
+    - CreateMember(name, email, phone, address, role)
+    - UpdateMember(memberID, ...)
+    - DeleteMember(memberID)
+    - AssignMemberToProduction(memberID, productionID, role)
+    - RemoveMemberFromProduction(memberID, productionID)
+
+🏛️ Production Management
+    - CreateProduction(date)
+    - UpdateProduction(productionID, ...)
+    - DeleteProduction(productionID)
+    - LinkSponsorToProduction(sponsorID, productionID, amount)
+    - UnlinkSponsorFromProduction(sponsorID, productionID)
+
+🎟️ Ticketing
+    - CreateTicket(productionID, seatID, price, reservationDeadline)
+    - ReleaseTicket(ticketID)
+    - UpdateTicketStatus(ticketID, newStatus)
+    - CancelReservation(ticketID)
+
+🧾 Sponsor Management
+    - CreateSponsor(name, type)
+    - UpdateSponsor(sponsorID, ...)
+    - DeleteSponsor(sponsorID)
+
+🧑‍🤝‍🧑 Patron Management
+    - CreatePatron(name, email, address)
+    - UpdatePatron(patronID, ...)
+    - DeletePatron(patronID)
+
+🧲 TRIGGERS TO ADD
+    - After Ticket is updated to 'S' → Insert income transaction
+    - After deleting a Sponsor, cascade delete their transactions or nullify
+    - After inserting into Production_Sponsor → Log contribution in Transaction
+
+📊 FUNCTIONS TO ADD
+    - GetDuesStatusForMember(memberID) → Paid vs Owed
+    - GetTotalSponsorshipForProduction(productionID)
+    - GetTotalTicketRevenue(productionID)
+    - GetNetBalance(productionID) — alt to current summary proc
+    - GetPatronPurchaseHistory(patronID)
+
+🔍 VIEWS TO CREATE (5+ required by spec)
+    - vw_PlayListing : All plays with author, genre, and act count
+    - vw_CastCrewByProduction : Lists members and roles for each production
+    - vw_SponsorContributions : Sponsor names and amounts by production
+    - vw_PatronHistory : Patron name, tickets purchased, productions
+    - vw_TicketSalesByProduction : Seat info, price, patron per production
+    - vw_MemberDuesStatus : Member contact info + whether dues are paid
+    - vw_ProductionBalanceSheet : Income + expenses per production
+
+📈 REPORTS TO IMPLEMENT (3+ required — 8 suggested in PDF)
+Each of these should be generated via a view or stored procedure, and callable from Flask or shown as a download.
+    - Play Listing Report
+    - Program - Cast & Crew
+    - Program - Sponsors
+    - Patron Purchase History
+    - Ticket Sales Report
+    - Member Dues Report
+    - Production Balance Sheet
+    - Ticket Reservation Interaction (find available seats, reserve)
+
+Update the main.py and index.html to enable these features.
