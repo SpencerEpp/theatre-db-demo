@@ -16,6 +16,287 @@
   <h1>Theatre Admin Portal</h1>
 
   <!-- Each section below corresponds to a procedure/function -->
+  <h2>Create Play</h2>
+  <form onsubmit="submitForm(event, 'CreatePlay')">
+    <input name="Title" placeholder="Title" required>
+    <input name="Author" placeholder="Author">
+    <input name="Genre" placeholder="Genre" required>
+    <input name="NumberOfActs" type="number" placeholder="Number of Acts" required>
+    <input name="Cost" type="number" step="0.01" placeholder="Cost" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Update Play</h2>
+  <form onsubmit="submitForm(event, 'UpdatePlay')">
+    <input name="PlayID" type="number" placeholder="PlayID" required>
+    <input name="Title" placeholder="Title" required>
+    <input name="Author" placeholder="Author">
+    <input name="Genre" placeholder="Genre" required>
+    <input name="NumberOfActs" type="number" placeholder="Number of Acts" required>
+    <input name="Cost" type="number" step="0.01" placeholder="Cost" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Delete Play</h2>
+  <form onsubmit="submitForm(event, 'DeletePlay')">
+    <input name="PlayID" type="number" placeholder="PlayID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Create Member</h2>
+  <form onsubmit="submitForm(event, 'CreateMember')">
+    <input name="Name" placeholder="Name" required>
+    <input name="Email" placeholder="Email">
+    <input name="Phone" placeholder="Phone">
+    <input name="Address" placeholder="Address">
+    <input name="Role" placeholder="Role">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Update Member</h2>
+  <form onsubmit="submitForm(event, 'UpdateMember')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <input name="Name" placeholder="Name" required>
+    <input name="Email" placeholder="Email">
+    <input name="Phone" placeholder="Phone">
+    <input name="Address" placeholder="Address">
+    <input name="Role" placeholder="Role">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Delete Member</h2>
+  <form onsubmit="submitForm(event, 'DeleteMember')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Assign Member to Production</h2>
+  <form onsubmit="submitForm(event, 'AssignMemberToProduction')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="Role" placeholder="Role">
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Remove Member from Production</h2>
+  <form onsubmit="submitForm(event, 'RemoveMemberFromProduction')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Create Production</h2>
+  <form onsubmit="submitForm(event, 'CreateProduction')">
+    <input name="ProductionDate" type="date" placeholder="Production Date" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Update Production</h2>
+  <form onsubmit="submitForm(event, 'UpdateProduction')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="ProductionDate" type="date" placeholder="Production Date" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Delete Production</h2>
+  <form onsubmit="submitForm(event, 'DeleteProduction')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Link Sponsor to Production</h2>
+  <form onsubmit="submitForm(event, 'LinkSponsorToProduction')">
+    <input name="SponsorID" type="number" placeholder="SponsorID" required>
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="Amount" type="number" step="0.01" placeholder="Amount" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Unlink Sponsor from Production</h2>
+  <form onsubmit="submitForm(event, 'UnlinkSponsorFromProduction')">
+    <input name="SponsorID" type="number" placeholder="SponsorID" required>
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Create Ticket</h2>
+  <form onsubmit="submitForm(event, 'CreateTicket')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="SeatID" type="number" placeholder="SeatID" required>
+    <input name="Price" type="number" step="0.01" placeholder="Price" required>
+    <input name="ReservationDeadline" type="date" placeholder="Reservation Deadline">
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Release Ticket</h2>
+  <form onsubmit="submitForm(event, 'ReleaseTicket')">
+    <input name="TicketID" type="number" placeholder="TicketID" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Update Ticket Status</h2>
+  <form onsubmit="submitForm(event, 'UpdateTicketStatus')">
+    <input name="TicketID" type="number" placeholder="TicketID" required>
+    <select name="Status" required>
+      <option value="A">Available</option>
+      <option value="S">Sold</option>
+    </select>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Update Ticket Price</h2>
+  <form onsubmit="submitForm(event, 'UpdateTicketPrice')">
+    <input name="TicketID" type="number" placeholder="TicketID" required>
+    <input name="NewPrice" type="number" step="0.01" placeholder="New Price" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Cancel Ticket Reservation</h2>
+  <form onsubmit="submitForm(event, 'CancelReservation')">
+    <input name="TicketID" type="number" placeholder="TicketID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Create Sponsor</h2>
+  <form onsubmit="submitForm(event, 'CreateSponsor')">
+    <input name="Name" placeholder="Sponsor Name" required>
+    <select name="Type" required>
+      <option value="C">Company</option>
+      <option value="I">Individual</option>
+    </select>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Update Sponsor</h2>
+  <form onsubmit="submitForm(event, 'UpdateSponsor')">
+    <input name="SponsorID" type="number" placeholder="SponsorID" required>
+    <input name="Name" placeholder="Sponsor Name" required>
+    <select name="Type" required>
+      <option value="C">Company</option>
+      <option value="I">Individual</option>
+    </select>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Delete Sponsor</h2>
+  <form onsubmit="submitForm(event, 'DeleteSponsor')">
+    <input name="SponsorID" type="number" placeholder="SponsorID" required>
+    <button type="submit">Submit</button>
+  </form>
+    
+  <h2>Create Patron</h2>
+  <form onsubmit="submitForm(event, 'CreatePatron')">
+    <input name="Name" placeholder="Name" required>
+    <input name="Email" placeholder="Email">
+    <input name="Address" placeholder="Address">
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Update Patron</h2>
+  <form onsubmit="submitForm(event, 'UpdatePatron')">
+    <input name="PatronID" type="number" placeholder="PatronID" required>
+    <input name="Name" placeholder="Name" required>
+    <input name="Email" placeholder="Email">
+    <input name="Address" placeholder="Address">
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Delete Patron</h2>
+  <form onsubmit="submitForm(event, 'DeletePatron')">
+    <input name="PatronID" type="number" placeholder="PatronID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Create Meeting</h2>
+  <form onsubmit="submitForm(event, 'CreateMeeting')">
+    <select name="Type" required>
+      <option value="F">Fall</option>
+      <option value="S">Spring</option>
+    </select>
+    <input name="Date" type="date" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Update Meeting</h2>
+  <form onsubmit="submitForm(event, 'UpdateMeeting')">
+    <input name="MeetingID" type="number" placeholder="MeetingID" required>
+    <select name="Type" required>
+      <option value="F">Fall</option>
+      <option value="S">Spring</option>
+    </select>
+    <input name="Date" type="date" placeholder="Date" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Delete Meeting</h2>
+  <form onsubmit="submitForm(event, 'DeleteMeeting')">
+    <input name="MeetingID" type="number" placeholder="MeetingID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Assign Member to Meeting</h2>
+  <form onsubmit="submitForm(event, 'AssignMemberToMeeting')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <input name="MeetingID" type="number" placeholder="MeetingID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Remove Member from Meeting</h2>
+  <form onsubmit="submitForm(event, 'RemoveMemberFromMeeting')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <input name="MeetingID" type="number" placeholder="MeetingID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Create Dues Record</h2>
+  <form onsubmit="submitForm(event, 'CreateDuesRecord')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
+    <input name="Year" type="number" placeholder="Year" required>
+    <input name="TotalAmount" type="number" step="0.01" placeholder="Total Amount" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Delete Dues Record</h2>
+  <form onsubmit="submitForm(event, 'DeleteDuesRecord')">
+    <input name="DuesID" type="number" placeholder="DuesID" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Check Seat Availability</h2>
+  <form onsubmit="submitForm(event, 'CheckSeatAvailability')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <input name="SeatID" type="number" placeholder="SeatID" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Reserve Ticket</h2>
+  <form onsubmit="submitForm(event, 'ReserveTicket')">
+    <input name="TicketID" type="number" placeholder="TicketID" required>
+    <input name="PatronID" type="number" placeholder="PatronID" required>
+    <input name="Deadline" type="date" placeholder="Reservation Deadline">
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Create Seat</h2>
+  <form onsubmit="submitForm(event, 'CreateSeat')">
+    <input name="SeatRow" maxlength="1" placeholder="Seat Row (A-Z)" required>
+    <input name="Number" type="number" placeholder="Seat Number" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Update Seat</h2>
+  <form onsubmit="submitForm(event, 'UpdateSeat')">
+    <input name="SeatID" type="number" placeholder="SeatID" required>
+    <input name="SeatRow" maxlength="1" placeholder="Seat Row (A-Z)" required>
+    <input name="Number" type="number" placeholder="Seat Number" required>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <h2>Delete Seat</h2>
+  <form onsubmit="submitForm(event, 'DeleteSeat')">
+    <input name="SeatID" type="number" placeholder="SeatID" required>
+    <button type="submit">Submit</button>
+  </form>
 
   <h2>Add Play To Production</h2>
   <form onsubmit="submitForm(event, 'AddPlayToProduction')">
@@ -72,6 +353,18 @@
   <h2>Undo Ticket Purchase</h2>
   <form onsubmit="submitForm(event, 'UndoTicketPurchase')">
     <input name="TicketID" placeholder="TicketID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>List Tickets for Production</h2>
+  <form onsubmit="submitForm(event, 'ListTicketsForProduction')">
+    <input name="ProductionID" type="number" placeholder="ProductionID" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Get Member Participation</h2>
+  <form onsubmit="submitForm(event, 'GetMemberParticipation')">
+    <input name="MemberID" type="number" placeholder="MemberID" required>
     <button type="submit">Submit</button>
   </form>
 

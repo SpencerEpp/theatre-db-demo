@@ -1,44 +1,6 @@
 STORED PROCEDURES TO ADD
 
-Play Management
-    - CreatePlay(title, author, genre, acts, cost)
-    - UpdatePlay(playID, ...)
-    - DeletePlay(playID)
-
-Member Management
-    - CreateMember(name, email, phone, address, role)
-    - UpdateMember(memberID, ...)
-    - DeleteMember(memberID)
-    - AssignMemberToProduction(memberID, productionID, role)
-    - RemoveMemberFromProduction(memberID, productionID)
-
-Production Management
-    - CreateProduction(date)
-    - UpdateProduction(productionID, ...)
-    - DeleteProduction(productionID)
-    - LinkSponsorToProduction(sponsorID, productionID, amount)
-    - UnlinkSponsorFromProduction(sponsorID, productionID)
-
-Ticketing
-    - CreateTicket(productionID, seatID, price, reservationDeadline)
-    - ReleaseTicket(ticketID)
-    - UpdateTicketStatus(ticketID, newStatus)
-    - CancelReservation(ticketID)
-
-Sponsor Management
-    - CreateSponsor(name, type)
-    - UpdateSponsor(sponsorID, ...)
-    - DeleteSponsor(sponsorID)
-
-Patron Management
-    - CreatePatron(name, email, address)
-    - UpdatePatron(patronID, ...)
-    - DeletePatron(patronID)
-
 TRIGGERS TO ADD
-    - After Ticket is updated to 'S' → Insert income transaction
-    - After deleting a Sponsor, cascade delete their transactions or nullify
-    - After inserting into Production_Sponsor → Log contribution in Transaction
 
 FUNCTIONS TO ADD
     - GetDuesStatusForMember(memberID) → Paid vs Owed

@@ -10,7 +10,47 @@
 -- ========================================================================================
 DROP TRIGGER IF EXISTS trg_AddPlayCostTransaction;
 DROP TRIGGER IF EXISTS trg_AutoTransactionOnDuesPayment;
+DROP TRIGGER IF EXISTS trg_TicketPurchaseTransaction;
+DROP TRIGGER IF EXISTS trg_DeleteDuesPaymentTransaction;
+DROP TRIGGER IF EXISTS trg_DeleteTicketTransaction;
+DROP TRIGGER IF EXISTS trg_ReleaseTicketTransaction;
+DROP TRIGGER IF EXISTS trg_DeleteSponsorContributionTransaction;
+DROP TRIGGER IF EXISTS trg_DeletePlayCostTransaction;
+DROP TRIGGER IF EXISTS trg_SponsorContributionIncomeOnInsert;
 
+DROP PROCEDURE IF EXISTS CreateMember;
+DROP PROCEDURE IF EXISTS UpdateMember;
+DROP PROCEDURE IF EXISTS DeleteMember;
+DROP PROCEDURE IF EXISTS AssignMemberToProduction;
+DROP PROCEDURE IF EXISTS RemoveMemberFromProduction;
+DROP PROCEDURE IF EXISTS CreateProduction;
+DROP PROCEDURE IF EXISTS UpdateProduction;
+DROP PROCEDURE IF EXISTS DeleteProduction;
+DROP PROCEDURE IF EXISTS LinkSponsorToProduction;
+DROP PROCEDURE IF EXISTS UnlinkSponsorFromProduction;
+DROP PROCEDURE IF EXISTS CreateTicket;
+DROP PROCEDURE IF EXISTS ReleaseTicket;
+DROP PROCEDURE IF EXISTS UpdateTicketStatus;
+DROP PROCEDURE IF EXISTS UpdateTicketPrice;
+DROP PROCEDURE IF EXISTS CancelReservation;
+DROP PROCEDURE IF EXISTS CreateSponsor;
+DROP PROCEDURE IF EXISTS UpdateSponsor;
+DROP PROCEDURE IF EXISTS DeleteSponsor;
+DROP PROCEDURE IF EXISTS CreatePatron;
+DROP PROCEDURE IF EXISTS UpdatePatron;
+DROP PROCEDURE IF EXISTS DeletePatron;
+DROP PROCEDURE IF EXISTS CreateMeeting;
+DROP PROCEDURE IF EXISTS UpdateMeeting;
+DROP PROCEDURE IF EXISTS DeleteMeeting;
+DROP PROCEDURE IF EXISTS AssignMemberToMeeting;
+DROP PROCEDURE IF EXISTS RemoveMemberFromMeeting;
+DROP PROCEDURE IF EXISTS CreateDuesRecord;
+DROP PROCEDURE IF EXISTS DeleteDuesRecord;
+DROP PROCEDURE IF EXISTS CheckSeatAvailability;
+DROP PROCEDURE IF EXISTS ReserveTicket;
+DROP PROCEDURE IF EXISTS CreateSeat;
+DROP PROCEDURE IF EXISTS UpdateSeat;
+DROP PROCEDURE IF EXISTS DeleteSeat;
 DROP PROCEDURE IF EXISTS AddPlayToProduction;
 DROP PROCEDURE IF EXISTS UndoPlayFromProduction;
 DROP PROCEDURE IF EXISTS AddProductionExpense;
@@ -19,26 +59,30 @@ DROP PROCEDURE IF EXISTS AddDuesInstallment;
 DROP PROCEDURE IF EXISTS UndoDuesInstallment;
 DROP PROCEDURE IF EXISTS PurchaseTicket;
 DROP PROCEDURE IF EXISTS UndoTicketPurchase;
+DROP PROCEDURE IF EXISTS ListTicketsForProduction;
+DROP PROCEDURE IF EXISTS GetMemberParticipation;
 DROP PROCEDURE IF EXISTS GetProductionFinancialSummary;
 
 DROP FUNCTION IF EXISTS GetTotalPaidForDues;
 
-DROP TABLE IF EXISTS
-    Financial_Transaction,
-    Member_Meeting,
-    Meeting,
-    Ticket,
-    Seat,
-    Patron,
-    Production_Sponsor,
-    Sponsor,
-    DuesPayment,
-    DuesOwed,
-    Member_Production,
-    Member,
-    Production_Play,
-    Production,
-    Play;
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS Transaction;
+DROP TABLE IF EXISTS Financial_Transaction;
+DROP TABLE IF EXISTS Member_Meeting;
+DROP TABLE IF EXISTS Meeting;
+DROP TABLE IF EXISTS Ticket;
+DROP TABLE IF EXISTS Seat;
+DROP TABLE IF EXISTS Patron;
+DROP TABLE IF EXISTS Production_Sponsor;
+DROP TABLE IF EXISTS Sponsor;
+DROP TABLE IF EXISTS DuesPayment;
+DROP TABLE IF EXISTS DuesOwed;
+DROP TABLE IF EXISTS Member_Production;
+DROP TABLE IF EXISTS Member;
+DROP TABLE IF EXISTS Production_Play;
+DROP TABLE IF EXISTS Production;
+DROP TABLE IF EXISTS Play;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ========================================================================================
 -- DDL Statements
@@ -181,7 +225,7 @@ CREATE TABLE Member_Meeting (
 );
 
 -- Creating the Financial_Transaction table
-CREATE TABLE Transaction (
+CREATE TABLE Financial_Transaction (
     TransactionID INT PRIMARY KEY,
     Type ENUM('I', 'E') NOT NULL, -- 'I' for Income, 'E' for Expense
     Amount DECIMAL(12,2) NOT NULL,
@@ -207,7 +251,490 @@ CREATE TABLE Transaction (
 -- Procedures
 -- ========================================================================================
 
--- This procedure can add a play to a production
+-- CREATE PLAY
+DELIMITER //
+CREATE PROCEDURE CreatePlay (
+    IN in_Title VARCHAR(100),
+    IN in_Author VARCHAR(255),
+    IN in_Genre VARCHAR(100),
+    IN in_NumberOfActs TINYINT UNSIGNED,
+    IN in_Cost DECIMAL(12,2)
+)
+BEGIN
+    INSERT INTO Play (PlayID, Title, Author, Genre, NumberOfActs, Cost)
+    VALUES (
+        (SELECT IFNULL(MAX(PlayID), 0) + 1 FROM Play),
+        in_Title, in_Author, in_Genre, in_NumberOfActs, in_Cost
+    );
+END //
+DELIMITER ;
+
+-- UPDATE PLAY
+DELIMITER //
+CREATE PROCEDURE UpdatePlay (
+    IN in_PlayID INT,
+    IN in_Title VARCHAR(100),
+    IN in_Author VARCHAR(255),
+    IN in_Genre VARCHAR(100),
+    IN in_NumberOfActs TINYINT UNSIGNED,
+    IN in_Cost DECIMAL(12,2)
+)
+BEGIN
+    UPDATE Play
+    SET
+        Title = in_Title,
+        Author = in_Author,
+        Genre = in_Genre,
+        NumberOfActs = in_NumberOfActs,
+        Cost = in_Cost
+    WHERE PlayID = in_PlayID;
+END //
+DELIMITER ;
+
+-- DELETE PLAY
+DELIMITER //
+CREATE PROCEDURE DeletePlay (
+    IN in_PlayID INT
+)
+BEGIN
+    DELETE FROM Play
+    WHERE PlayID = in_PlayID;
+END //
+DELIMITER ;
+
+-- CREATE MEMBER
+DELIMITER //
+CREATE PROCEDURE CreateMember (
+    IN in_Name VARCHAR(255),
+    IN in_Email VARCHAR(100),
+    IN in_Phone VARCHAR(20),
+    IN in_Address VARCHAR(100),
+    IN in_Role VARCHAR(100)
+)
+BEGIN
+    INSERT INTO Member (MemberID, Name, Email, Phone, Address, Role)
+    VALUES ((SELECT IFNULL(MAX(MemberID), 0) + 1 FROM Member), in_Name, in_Email, in_Phone, in_Address, in_Role);
+END //
+DELIMITER ;
+
+-- UPDATE MEMBER
+DELIMITER //
+CREATE PROCEDURE UpdateMember (
+    IN in_MemberID INT,
+    IN in_Name VARCHAR(255),
+    IN in_Email VARCHAR(100),
+    IN in_Phone VARCHAR(20),
+    IN in_Address VARCHAR(100),
+    IN in_Role VARCHAR(100)
+)
+BEGIN
+    UPDATE Member
+    SET Name = in_Name,
+        Email = in_Email,
+        Phone = in_Phone,
+        Address = in_Address,
+        Role = in_Role
+    WHERE MemberID = in_MemberID;
+END //
+DELIMITER ;
+
+-- DELETE MEMBER
+DELIMITER //
+CREATE PROCEDURE DeleteMember (
+    IN in_MemberID INT
+)
+BEGIN
+    DELETE FROM Member WHERE MemberID = in_MemberID;
+END //
+DELIMITER ;
+
+-- ASSIGN MEMBER TO PRODUCTION
+DELIMITER //
+CREATE PROCEDURE AssignMemberToProduction (
+    IN in_MemberID INT,
+    IN in_ProductionID INT,
+    IN in_Role VARCHAR(100)
+)
+BEGIN
+    INSERT INTO Member_Production (MemberID, ProductionID, Role)
+    VALUES (in_MemberID, in_ProductionID, in_Role);
+END //
+DELIMITER ;
+
+-- REMOVE MEMBER FROM PRODUCTION
+DELIMITER //
+CREATE PROCEDURE RemoveMemberFromProduction (
+    IN in_MemberID INT,
+    IN in_ProductionID INT
+)
+BEGIN
+    DELETE FROM Member_Production
+    WHERE MemberID = in_MemberID AND ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- CREATE PRODUCTION
+DELIMITER //
+CREATE PROCEDURE CreateProduction (
+    IN in_ProductionDate DATE
+)
+BEGIN
+    INSERT INTO Production (ProductionID, ProductionDate)
+    VALUES ((SELECT IFNULL(MAX(ProductionID), 0) + 1 FROM Production), in_ProductionDate);
+END //
+DELIMITER ;
+
+-- UPDATE PRODUCTION
+DELIMITER //
+CREATE PROCEDURE UpdateProduction (
+    IN in_ProductionID INT,
+    IN in_ProductionDate DATE
+)
+BEGIN
+    UPDATE Production
+    SET ProductionDate = in_ProductionDate
+    WHERE ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- DELETE PRODUCTION
+DELIMITER //
+CREATE PROCEDURE DeleteProduction (
+    IN in_ProductionID INT
+)
+BEGIN
+    DELETE FROM Production WHERE ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- LINK SPONSOR TO PRODUCTION
+DELIMITER //
+CREATE PROCEDURE LinkSponsorToProduction (
+    IN in_SponsorID INT,
+    IN in_ProductionID INT,
+    IN in_Amount DECIMAL(12,2)
+)
+BEGIN
+    INSERT INTO Production_Sponsor (SponsorID, ProductionID, ContributionAmount)
+    VALUES (in_SponsorID, in_ProductionID, in_Amount);
+END //
+DELIMITER ;
+
+-- UNLINK SPONSOR FROM PRODUCTION
+DELIMITER //
+CREATE PROCEDURE UnlinkSponsorFromProduction (
+    IN in_SponsorID INT,
+    IN in_ProductionID INT
+)
+BEGIN
+    DELETE FROM Production_Sponsor
+    WHERE SponsorID = in_SponsorID AND ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- CREATE TICKET
+DELIMITER //
+CREATE PROCEDURE CreateTicket (
+    IN in_ProductionID INT,
+    IN in_SeatID INT,
+    IN in_Price DECIMAL(6,2),
+    IN in_ReservationDeadline DATE
+)
+BEGIN
+    INSERT INTO Ticket (TicketID, ProductionID, SeatID, Price, Status, ReservationDeadline)
+    VALUES (
+        (SELECT IFNULL(MAX(TicketID), 0) + 1 FROM Ticket),
+        in_ProductionID,
+        in_SeatID,
+        in_Price,
+        'A', -- available by default
+        in_ReservationDeadline
+    );
+END //
+DELIMITER ;
+
+-- RELEASE TICKET (unassigns patron & sets available)
+DELIMITER //
+CREATE PROCEDURE ReleaseTicket (
+    IN in_TicketID INT
+)
+BEGIN
+    UPDATE Ticket
+    SET Status = 'A',
+        PatronID = NULL
+    WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- UPDATE TICKET STATUS
+DELIMITER //
+CREATE PROCEDURE UpdateTicketStatus (
+    IN in_TicketID INT,
+    IN in_Status ENUM('S', 'A')
+)
+BEGIN
+    UPDATE Ticket
+    SET Status = in_Status
+    WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- UPDATE TICKET PRICE
+DELIMITER //
+CREATE PROCEDURE UpdateTicketPrice (
+    IN in_TicketID INT,
+    IN in_NewPrice DECIMAL(6,2)
+)
+BEGIN
+    UPDATE Ticket
+    SET Price = in_NewPrice
+    WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- CANCEL RESERVATION
+DELIMITER //
+CREATE PROCEDURE CancelReservation (
+    IN in_TicketID INT
+)
+BEGIN
+    UPDATE Ticket
+    SET PatronID = NULL,
+        Status = 'A'
+    WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- CREATE SPONSOR
+DELIMITER //
+CREATE PROCEDURE CreateSponsor (
+    IN in_Name VARCHAR(255),
+    IN in_Type ENUM('C', 'I') -- C = Company, I = Individual
+)
+BEGIN
+    INSERT INTO Sponsor (SponsorID, Name, Type)
+    VALUES ((SELECT IFNULL(MAX(SponsorID), 0) + 1 FROM Sponsor), in_Name, in_Type);
+END //
+DELIMITER ;
+
+-- UPDATE SPONSOR
+DELIMITER //
+CREATE PROCEDURE UpdateSponsor (
+    IN in_SponsorID INT,
+    IN in_Name VARCHAR(255),
+    IN in_Type ENUM('C', 'I')
+)
+BEGIN
+    UPDATE Sponsor
+    SET Name = in_Name,
+        Type = in_Type
+    WHERE SponsorID = in_SponsorID;
+END //
+DELIMITER ;
+
+-- DELETE SPONSOR
+DELIMITER //
+CREATE PROCEDURE DeleteSponsor (
+    IN in_SponsorID INT
+)
+BEGIN
+    DELETE FROM Sponsor
+    WHERE SponsorID = in_SponsorID;
+END //
+DELIMITER ;
+
+-- CREATE PATRON
+DELIMITER //
+CREATE PROCEDURE CreatePatron (
+    IN in_Name VARCHAR(255),
+    IN in_Email VARCHAR(100),
+    IN in_Address VARCHAR(100)
+)
+BEGIN
+    INSERT INTO Patron (PatronID, Name, Email, Address)
+    VALUES ((SELECT IFNULL(MAX(PatronID), 0) + 1 FROM Patron), in_Name, in_Email, in_Address);
+END //
+DELIMITER ;
+
+-- UPDATE PATRON
+DELIMITER //
+CREATE PROCEDURE UpdatePatron (
+    IN in_PatronID INT,
+    IN in_Name VARCHAR(255),
+    IN in_Email VARCHAR(100),
+    IN in_Address VARCHAR(100)
+)
+BEGIN
+    UPDATE Patron
+    SET Name = in_Name,
+        Email = in_Email,
+        Address = in_Address
+    WHERE PatronID = in_PatronID;
+END //
+DELIMITER ;
+
+-- DELETE PATRON
+DELIMITER //
+CREATE PROCEDURE DeletePatron (
+    IN in_PatronID INT
+)
+BEGIN
+    DELETE FROM Patron
+    WHERE PatronID = in_PatronID;
+END //
+DELIMITER ;
+
+-- CREATE MEETING
+DELIMITER //
+CREATE PROCEDURE CreateMeeting (
+    IN in_Type ENUM('F', 'S'), -- F = Fall, S = Spring
+    IN in_Date DATE
+)
+BEGIN
+    INSERT INTO Meeting (MeetingID, Type, Date)
+    VALUES ((SELECT IFNULL(MAX(MeetingID), 0) + 1 FROM Meeting), in_Type, in_Date);
+END //
+DELIMITER ;
+
+-- UPDATE MEETING
+DELIMITER //
+CREATE PROCEDURE UpdateMeeting (
+    IN in_MeetingID INT,
+    IN in_Type ENUM('F', 'S'),
+    IN in_Date DATE
+)
+BEGIN
+    UPDATE Meeting
+    SET Type = in_Type,
+        Date = in_Date
+    WHERE MeetingID = in_MeetingID;
+END //
+DELIMITER ;
+
+-- DELETE MEETING
+DELIMITER //
+CREATE PROCEDURE DeleteMeeting (
+    IN in_MeetingID INT
+)
+BEGIN
+    DELETE FROM Meeting WHERE MeetingID = in_MeetingID;
+END //
+DELIMITER ;
+
+-- ASSIGN MEMBER TO MEETING
+DELIMITER //
+CREATE PROCEDURE AssignMemberToMeeting (
+    IN in_MemberID INT,
+    IN in_MeetingID INT
+)
+BEGIN
+    INSERT INTO Member_Meeting (MemberID, MeetingID)
+    VALUES (in_MemberID, in_MeetingID);
+END //
+DELIMITER ;
+
+-- REMOVE MEMBER FROM MEETING
+DELIMITER //
+CREATE PROCEDURE RemoveMemberFromMeeting (
+    IN in_MemberID INT,
+    IN in_MeetingID INT
+)
+BEGIN
+    DELETE FROM Member_Meeting
+    WHERE MemberID = in_MemberID AND MeetingID = in_MeetingID;
+END //
+DELIMITER ;
+
+-- CREATE DUES RECORD
+DELIMITER //
+CREATE PROCEDURE CreateDuesRecord (
+    IN in_MemberID INT,
+    IN in_Year YEAR,
+    IN in_TotalAmount DECIMAL(6,2)
+)
+BEGIN
+    INSERT INTO DuesOwed (MemberID, Year, TotalDue)
+    VALUES (in_MemberID, in_Year, in_TotalAmount);
+END //
+DELIMITER ;
+
+-- DELETE DUES RECORD
+DELIMITER //
+CREATE PROCEDURE DeleteDuesRecord (
+    IN in_DuesID INT
+)
+BEGIN
+    DELETE FROM DuesOwed WHERE DuesID = in_DuesID;
+END //
+DELIMITER ;
+
+-- CHECK SEAT AVAILABILITY
+DELIMITER //
+CREATE PROCEDURE CheckSeatAvailability (
+    IN in_ProductionID INT,
+    IN in_SeatID INT
+)
+BEGIN
+    SELECT Status, PatronID, ReservationDeadline
+    FROM Ticket
+    WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID;
+END //
+DELIMITER ;
+
+-- RESERVE TICKET
+DELIMITER //
+CREATE PROCEDURE ReserveTicket (
+    IN in_TicketID INT,
+    IN in_PatronID INT,
+    IN in_Deadline DATE
+)
+BEGIN
+    UPDATE Ticket
+    SET PatronID = in_PatronID,
+        Status = 'A',
+        ReservationDeadline = in_Deadline
+    WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- CREATE SEAT
+DELIMITER //
+CREATE PROCEDURE CreateSeat (
+    IN in_SeatRow CHAR(1),
+    IN in_Number TINYINT
+)
+BEGIN
+    INSERT INTO Seat (SeatID, SeatRow, Number)
+    VALUES ((SELECT IFNULL(MAX(SeatID), 0) + 1 FROM Seat), in_SeatRow, in_Number);
+END //
+DELIMITER ;
+
+-- UPDATE SEAT
+DELIMITER //
+CREATE PROCEDURE UpdateSeat (
+    IN in_SeatID INT,
+    IN in_SeatRow CHAR(1),
+    IN in_Number TINYINT
+)
+BEGIN
+    UPDATE Seat
+    SET SeatRow = in_SeatRow,
+        Number = in_Number
+    WHERE SeatID = in_SeatID;
+END //
+DELIMITER ;
+
+-- DELETE SEAT
+DELIMITER //
+CREATE PROCEDURE DeleteSeat (
+    IN in_SeatID INT
+)
+BEGIN
+    DELETE FROM Seat WHERE SeatID = in_SeatID;
+END //
+DELIMITER ;
+
+-- ADD PLAY TO PRODUCTION
 DELIMITER //
 CREATE PROCEDURE AddPlayToProduction (
     IN in_ProductionID INT,
@@ -229,7 +756,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Undoes adding a play to a production, the procedure above
+-- REMOVE PLAY FROM PRODUCTION
 DELIMITER //
 CREATE PROCEDURE UndoPlayFromProduction (
     IN in_ProductionID INT,
@@ -248,7 +775,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- This procedure allows users to input a production expense which may not be a part of the base cost
+-- ADD EXPENSE TO PRODUCTION
 DELIMITER //
 CREATE PROCEDURE AddProductionExpense (
     IN in_Amount DECIMAL(12,2),
@@ -262,7 +789,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Undoes a production transaction, the procedure above
+-- REMOVE EXPENSE FROM PRODUCTION
 DELIMITER //
 CREATE PROCEDURE UndoProductionExpense (
     IN in_TransactionID INT
@@ -274,7 +801,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- This procedure allows users to add a dues installment to pay off portions of their dues rather than one payment per year.
+-- ADD DUES INSTALLMENT
 DELIMITER //
 CREATE PROCEDURE AddDuesInstallment (
     IN in_MemberID INT,
@@ -320,7 +847,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- This procedure undoes installment payments, the above procedure
+-- REMOVE INSTALLMENT
 DELIMITER //
 CREATE PROCEDURE UndoDuesInstallment (
     IN in_PaymentID INT
@@ -379,7 +906,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Undoes a ticket purchase, the procedure above 
+-- REMOVE TICKET PURCHASE
 DELIMITER //
 CREATE PROCEDURE UndoTicketPurchase (
     IN in_TicketID INT
@@ -393,6 +920,62 @@ BEGIN
     -- Remove the linked financial transaction
     DELETE FROM Financial_Transaction
     WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- LIST TICKETS FOR PRODUCTION
+DELIMITER //
+CREATE PROCEDURE ListTicketsForProduction (
+    IN in_ProductionID INT
+)
+BEGIN
+    SELECT 
+        t.TicketID,
+        s.SeatRow,
+        s.Number AS SeatNumber,
+        t.Price,
+        t.Status,
+        t.ReservationDeadline,
+        p.Name AS PatronName,
+        p.Email AS PatronEmail
+    FROM Ticket t
+    JOIN Seat s ON t.SeatID = s.SeatID
+    LEFT JOIN Patron p ON t.PatronID = p.PatronID
+    WHERE t.ProductionID = in_ProductionID;
+END //
+DELIMITER ;
+
+-- GET MEMBER PARTICIPATION
+DELIMITER //
+CREATE PROCEDURE GetMemberParticipation (
+    IN in_MemberID INT
+)
+BEGIN
+    SELECT 
+        'Production' AS ActivityType,
+        p.ProductionID,
+        p.ProductionDate,
+        mp.Role,
+        NULL AS MeetingID,
+        NULL AS MeetingType,
+        NULL AS MeetingDate
+    FROM Member_Production mp
+    JOIN Production p ON mp.ProductionID = p.ProductionID
+    WHERE mp.MemberID = in_MemberID
+
+    UNION
+
+    SELECT 
+        'Meeting' AS ActivityType,
+        NULL AS ProductionID,
+        NULL AS ProductionDate,
+        NULL AS Role,
+        mm.MeetingID,
+        m.Type,
+        m.Date
+    FROM Member_Meeting mm
+    JOIN Meeting m ON mm.MeetingID = m.MeetingID
+    WHERE mm.MemberID = in_MemberID;
 END //
 DELIMITER ;
 
@@ -427,7 +1010,7 @@ DELIMITER ;
 -- Triggers
 -- ========================================================================================
 
--- This trigger automatically generates a transaction for the play’s cost when it is added to a production 
+-- Trigger: Automatically create transaction when play added to production 
 DELIMITER //
 CREATE TRIGGER trg_AddPlayCostTransaction
 AFTER INSERT ON Production_Play
@@ -455,7 +1038,7 @@ DELIMITER ;
 -- END //
 -- DELIMITER ;
 
--- This trigger is used to create a transaction automatically when a dues payment is made.
+-- Trigger: Automatically create transaction on dues payment
 DELIMITER //
 CREATE TRIGGER trg_AutoTransactionOnDuesPayment
 AFTER INSERT ON DuesPayment
@@ -463,27 +1046,102 @@ FOR EACH ROW
 BEGIN
     DECLARE totalPaid DECIMAL(10,2);
     DECLARE totalDue DECIMAL(10,2);
-
-    -- Use function to get total paid so far including new payment
     SET totalPaid = GetTotalPaidForDues(NEW.DuesID);
-
-    -- Get the total due for this dues record
     SELECT TotalDue INTO totalDue
     FROM DuesOwed
     WHERE DuesID = NEW.DuesID;
-
-    -- Validate: total paid must not exceed total due
     IF totalPaid > totalDue THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Installment exceeds total dues for the year';
     END IF;
-
-    -- Create associated financial transaction
     INSERT INTO Financial_Transaction (Type, Amount, Date, DuesPaymentID, Description) 
     VALUES ('I', NEW.AmountPaid, NEW.PaymentDate, NEW.PaymentID, CONCAT('Auto: Dues payment installment'));
 END //
 DELIMITER ;
 
+-- Trigger: Automatically log income transaction on ticket sale
+DELIMITER //
+CREATE TRIGGER trg_TicketPurchaseTransaction
+AFTER UPDATE ON Ticket
+FOR EACH ROW
+BEGIN
+    IF OLD.Status != 'S' AND NEW.Status = 'S' THEN
+        INSERT INTO Financial_Transaction (Type, Amount, Date, TicketID, ProductionID, Description)
+        VALUES ('I', NEW.Price, CURRENT_DATE, NEW.TicketID, NEW.ProductionID, 'Ticket Purchase (trigger)');
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger: Delete linked transaction when dues payment is deleted
+DELIMITER //
+CREATE TRIGGER trg_DeleteDuesPaymentTransaction
+BEFORE DELETE ON DuesPayment
+FOR EACH ROW
+BEGIN
+    DELETE FROM Financial_Transaction
+    WHERE DuesPaymentID = OLD.PaymentID;
+END //
+DELIMITER ;
+
+-- Trigger: Delete financial transaction when a ticket is deleted
+DELIMITER //
+CREATE TRIGGER trg_DeleteTicketTransaction
+BEFORE DELETE ON Ticket
+FOR EACH ROW
+BEGIN
+    DELETE FROM Financial_Transaction
+    WHERE TicketID = OLD.TicketID;
+END //
+DELIMITER ;
+
+-- Trigger: Delete financial transaction if ticket is "released" (sold → available)
+DELIMITER //
+CREATE TRIGGER trg_ReleaseTicketTransaction
+BEFORE UPDATE ON Ticket
+FOR EACH ROW
+BEGIN
+    IF OLD.Status = 'S' AND NEW.Status = 'A' THEN
+        DELETE FROM Financial_Transaction
+        WHERE TicketID = OLD.TicketID;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger: Delete financial transaction if a sponsor contribution is removed
+DELIMITER //
+CREATE TRIGGER trg_DeleteSponsorContributionTransaction
+BEFORE DELETE ON Production_Sponsor
+FOR EACH ROW
+BEGIN
+    DELETE FROM Financial_Transaction
+    WHERE SponsorID = OLD.SponsorID AND ProductionID = OLD.ProductionID
+    AND Amount = OLD.ContributionAmount AND Type = 'I';
+END //
+DELIMITER ;
+
+-- Trigger: Delete play cost transaction if play is removed from production
+DELIMITER //
+CREATE TRIGGER trg_DeletePlayCostTransaction
+BEFORE DELETE ON Production_Play
+FOR EACH ROW
+BEGIN
+    DELETE FROM Financial_Transaction
+    WHERE ProductionID = OLD.ProductionID
+      AND Description LIKE 'Base licensing cost for play added%'
+      AND PlayID = OLD.PlayID;
+END //
+DELIMITER ;
+
+-- Trigger: Automatically logs an income transaction when sponsor linked to production
+DELIMITER //
+CREATE TRIGGER trg_SponsorContributionIncomeOnInsert
+AFTER INSERT ON Production_Sponsor
+FOR EACH ROW
+BEGIN
+    INSERT INTO Financial_Transaction (Type, Amount, Date, SponsorID, ProductionID, Description)
+    VALUES ('I', NEW.ContributionAmount, CURRENT_DATE, NEW.SponsorID, NEW.ProductionID, 'Sponsor contribution (trigger)');
+END //
+DELIMITER ;
 
 
 -- ========================================================================================

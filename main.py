@@ -64,6 +64,165 @@ def procedure():
     action = request.form.get("action")
 
     args_map = {
+        "CreatePlay": [
+            sanitize_input(request.form['Title']),
+            sanitize_input(request.form['Author']),
+            sanitize_input(request.form['Genre']),
+            int(sanitize_input(request.form['NumberOfActs'])),
+            float(sanitize_input(request.form['Cost']))
+        ],
+        "UpdatePlay": [
+            int(sanitize_input(request.form['PlayID'])),
+            sanitize_input(request.form['Title']),
+            sanitize_input(request.form['Author']),
+            sanitize_input(request.form['Genre']),
+            int(sanitize_input(request.form['NumberOfActs'])),
+            float(sanitize_input(request.form['Cost']))
+        ],
+        "DeletePlay": [
+            int(sanitize_input(request.form['PlayID']))
+        ],
+        "CreateMember": [
+            sanitize_input(request.form['Name']),
+            sanitize_input(request.form['Email']),
+            sanitize_input(request.form['Phone']),
+            sanitize_input(request.form['Address']),
+            sanitize_input(request.form['Role'])
+        ],
+        "UpdateMember": [
+            int(sanitize_input(request.form['MemberID'])),
+            sanitize_input(request.form['Name']),
+            sanitize_input(request.form['Email']),
+            sanitize_input(request.form['Phone']),
+            sanitize_input(request.form['Address']),
+            sanitize_input(request.form['Role'])
+        ],
+        "DeleteMember": [
+            int(sanitize_input(request.form['MemberID']))
+        ],
+        "AssignMemberToProduction": [
+            int(sanitize_input(request.form['MemberID'])),
+            int(sanitize_input(request.form['ProductionID'])),
+            sanitize_input(request.form['Role'])
+        ],
+        "RemoveMemberFromProduction": [
+            int(sanitize_input(request.form['MemberID'])),
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "CreateProduction": [
+            sanitize_input(request.form['ProductionDate'])
+        ],
+        "UpdateProduction": [
+            int(sanitize_input(request.form['ProductionID'])),
+            sanitize_input(request.form['ProductionDate'])
+        ],
+        "DeleteProduction": [
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "LinkSponsorToProduction": [
+            int(sanitize_input(request.form['SponsorID'])),
+            int(sanitize_input(request.form['ProductionID'])),
+            float(sanitize_input(request.form['Amount']))
+        ],
+        "UnlinkSponsorFromProduction": [
+            int(sanitize_input(request.form['SponsorID'])),
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "CreateTicket": [
+            int(sanitize_input(request.form['ProductionID'])),
+            int(sanitize_input(request.form['SeatID'])),
+            float(sanitize_input(request.form['Price'])),
+            sanitize_input(request.form['ReservationDeadline']) if request.form['ReservationDeadline'] else None
+        ],
+        "ReleaseTicket": [
+            int(sanitize_input(request.form['TicketID']))
+        ],
+        "UpdateTicketStatus": [
+            int(sanitize_input(request.form['TicketID'])),
+            sanitize_input(request.form['Status'])
+        ],
+        "UpdateTicketPrice": [
+            int(sanitize_input(request.form['TicketID'])),
+            float(sanitize_input(request.form['NewPrice']))
+        ],
+        "CancelReservation": [
+            int(sanitize_input(request.form['TicketID']))
+        ],
+        "CreateSponsor": [
+            sanitize_input(request.form['Name']),
+            sanitize_input(request.form['Type'])
+        ],
+        "UpdateSponsor": [
+            int(sanitize_input(request.form['SponsorID'])),
+            sanitize_input(request.form['Name']),
+            sanitize_input(request.form['Type'])
+        ],
+        "DeleteSponsor": [
+            int(sanitize_input(request.form['SponsorID']))
+        ],
+        "CreatePatron": [
+            sanitize_input(request.form['Name']),
+            sanitize_input(request.form['Email']),
+            sanitize_input(request.form['Address'])
+        ],
+        "UpdatePatron": [
+            int(sanitize_input(request.form['PatronID'])),
+            sanitize_input(request.form['Name']),
+            sanitize_input(request.form['Email']),
+            sanitize_input(request.form['Address'])
+        ],
+        "DeletePatron": [
+            int(sanitize_input(request.form['PatronID']))
+        ],
+        "CreateMeeting": [
+            sanitize_input(request.form['Type']),
+            sanitize_input(request.form['Date'])
+        ],
+        "UpdateMeeting": [
+            int(sanitize_input(request.form['MeetingID'])),
+            sanitize_input(request.form['Type']),
+            sanitize_input(request.form['Date'])
+        ],
+        "DeleteMeeting": [
+            int(sanitize_input(request.form['MeetingID']))
+        ],
+        "AssignMemberToMeeting": [
+            int(sanitize_input(request.form['MemberID'])),
+            int(sanitize_input(request.form['MeetingID']))
+        ],
+        "RemoveMemberFromMeeting": [
+            int(sanitize_input(request.form['MemberID'])),
+            int(sanitize_input(request.form['MeetingID']))
+        ],
+        "CreateDuesRecord": [
+            int(sanitize_input(request.form['MemberID'])),
+            int(sanitize_input(request.form['Year'])),
+            float(sanitize_input(request.form['TotalAmount']))
+        ],
+        "DeleteDuesRecord": [
+            int(sanitize_input(request.form['DuesID']))
+        ],
+        "CheckSeatAvailability": [
+            int(sanitize_input(request.form['ProductionID'])),
+            int(sanitize_input(request.form['SeatID']))
+        ],
+        "ReserveTicket": [
+            int(sanitize_input(request.form['TicketID'])),
+            int(sanitize_input(request.form['PatronID'])),
+            sanitize_input(request.form['Deadline']) if request.form['Deadline'] else None
+        ],
+        "CreateSeat": [
+            sanitize_input(request.form['SeatRow']),
+            int(sanitize_input(request.form['Number']))
+        ],
+        "UpdateSeat": [
+            int(sanitize_input(request.form['SeatID'])),
+            sanitize_input(request.form['SeatRow']),
+            int(sanitize_input(request.form['Number']))
+        ],
+        "DeleteSeat": [
+            int(sanitize_input(request.form['SeatID']))
+        ],
         "AddPlayToProduction": [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['PlayID']))
@@ -97,6 +256,12 @@ def procedure():
         ],
         "UndoTicketPurchase": [
             int(sanitize_input(request.form['TicketID']))
+        ],
+        "ListTicketsForProduction": [
+            int(sanitize_input(request.form['ProductionID']))
+        ],
+        "GetMemberParticipation": [
+            int(sanitize_input(request.form['MemberID']))
         ],
         "GetProductionFinancialSummary": [
             int(sanitize_input(request.form['ProductionID'])) if request.form['ProductionID'] else None,
