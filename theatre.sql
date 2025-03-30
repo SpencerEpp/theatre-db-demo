@@ -103,7 +103,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- Creating the Play table
 CREATE TABLE Play (
-    PlayID INT PRIMARY KEY,
+    PlayID INT PRIMARY KEY AUTO_INCREMENT,
     Title VARCHAR(100) NOT NULL,
     Author VARCHAR(255),
     Genre VARCHAR(100) NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE Play (
 
 -- Creating the Production table
 CREATE TABLE Production (
-    ProductionID INT PRIMARY KEY,
+    ProductionID INT PRIMARY KEY AUTO_INCREMENT,
     ProductionDate DATE NOT NULL -- ,
 --    TotalCost DECIMAL(12,2) GENERATED ALWAYS AS (
 --         (SELECT COALESCE(SUM(p.Cost), 0)
@@ -138,7 +138,7 @@ CREATE TABLE Production_Play (
 
 -- Creating the Member table
 CREATE TABLE Member (
-    MemberID INT PRIMARY KEY,
+    MemberID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(255) NOT NULL,
     Email VARCHAR(100) UNIQUE,
     Phone VARCHAR(20),
@@ -176,7 +176,7 @@ CREATE TABLE DuesPayment (
 
 -- Creating the Sponsor table
 CREATE TABLE Sponsor (
-    SponsorID INT PRIMARY KEY,
+    SponsorID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(255) NOT NULL,
     Type ENUM('C', 'I') NOT NULL -- ‘C’ for company, ‘I’ for individual 
 );
@@ -193,7 +193,7 @@ CREATE TABLE Production_Sponsor (
 
 -- Creating the Patron table
 CREATE TABLE Patron (
-    PatronID INT PRIMARY KEY,
+    PatronID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(255) NOT NULL,
     Email VARCHAR(100) UNIQUE,
     Address VARCHAR(100)
@@ -208,7 +208,7 @@ CREATE TABLE Seat (
 
 -- Creating the Ticket table
 CREATE TABLE Ticket (
-    TicketID INT PRIMARY KEY,
+    TicketID INT PRIMARY KEY AUTO_INCREMENT,
     ProductionID INT NOT NULL,
     PatronID INT NULL, -- NULL if unassigned or released
     SeatID INT NOT NULL,
@@ -223,7 +223,7 @@ CREATE TABLE Ticket (
 
 -- Creating the Meeting table
 CREATE TABLE Meeting (
-    MeetingID INT PRIMARY KEY,
+    MeetingID INT PRIMARY KEY AUTO_INCREMENT,
     Type ENUM('F', 'S') NOT NULL,
     Date DATE NOT NULL
 );
@@ -239,7 +239,7 @@ CREATE TABLE Member_Meeting (
 
 -- Creating the Financial_Transaction table
 CREATE TABLE Financial_Transaction (
-    TransactionID INT PRIMARY KEY,
+    TransactionID INT PRIMARY KEY AUTO_INCREMENT,
     Type ENUM('I', 'E') NOT NULL, -- 'I' for Income, 'E' for Expense
     Amount DECIMAL(12,2) NOT NULL,
     Date DATE NOT NULL,
@@ -274,11 +274,8 @@ CREATE PROCEDURE CreatePlay (
     IN in_Cost DECIMAL(12,2)
 )
 BEGIN
-    INSERT INTO Play (PlayID, Title, Author, Genre, NumberOfActs, Cost)
-    VALUES (
-        (SELECT IFNULL(MAX(PlayID), 0) + 1 FROM Play),
-        in_Title, in_Author, in_Genre, in_NumberOfActs, in_Cost
-    );
+    INSERT INTO Play (Title, Author, Genre, NumberOfActs, Cost)
+    VALUES (in_Title, in_Author, in_Genre, in_NumberOfActs, in_Cost);
 END //
 DELIMITER ;
 
@@ -325,8 +322,8 @@ CREATE PROCEDURE CreateMember (
     IN in_Role VARCHAR(100)
 )
 BEGIN
-    INSERT INTO Member (MemberID, Name, Email, Phone, Address, Role)
-    VALUES ((SELECT IFNULL(MAX(MemberID), 0) + 1 FROM Member), in_Name, in_Email, in_Phone, in_Address, in_Role);
+    INSERT INTO Member (Name, Email, Phone, Address, Role)
+    VALUES (in_Name, in_Email, in_Phone, in_Address, in_Role);
 END //
 DELIMITER ;
 
@@ -392,8 +389,8 @@ CREATE PROCEDURE CreateProduction (
     IN in_ProductionDate DATE
 )
 BEGIN
-    INSERT INTO Production (ProductionID, ProductionDate)
-    VALUES ((SELECT IFNULL(MAX(ProductionID), 0) + 1 FROM Production), in_ProductionDate);
+    INSERT INTO Production (ProductionDate)
+    VALUES (in_ProductionDate);
 END //
 DELIMITER ;
 
@@ -454,15 +451,8 @@ CREATE PROCEDURE CreateTicket (
     IN in_ReservationDeadline DATE
 )
 BEGIN
-    INSERT INTO Ticket (TicketID, ProductionID, SeatID, Price, Status, ReservationDeadline)
-    VALUES (
-        (SELECT IFNULL(MAX(TicketID), 0) + 1 FROM Ticket),
-        in_ProductionID,
-        in_SeatID,
-        in_Price,
-        'A', -- available by default
-        in_ReservationDeadline
-    );
+    INSERT INTO Ticket (ProductionID, SeatID, Price, Status, ReservationDeadline)
+    VALUES (in_ProductionID, in_SeatID, in_Price,'A', in_ReservationDeadline);
 END //
 DELIMITER ;
 
@@ -525,8 +515,8 @@ CREATE PROCEDURE CreateSponsor (
     IN in_Type ENUM('C', 'I') -- C = Company, I = Individual
 )
 BEGIN
-    INSERT INTO Sponsor (SponsorID, Name, Type)
-    VALUES ((SELECT IFNULL(MAX(SponsorID), 0) + 1 FROM Sponsor), in_Name, in_Type);
+    INSERT INTO Sponsor (Name, Type)
+    VALUES (in_Name, in_Type);
 END //
 DELIMITER ;
 
@@ -564,8 +554,8 @@ CREATE PROCEDURE CreatePatron (
     IN in_Address VARCHAR(100)
 )
 BEGIN
-    INSERT INTO Patron (PatronID, Name, Email, Address)
-    VALUES ((SELECT IFNULL(MAX(PatronID), 0) + 1 FROM Patron), in_Name, in_Email, in_Address);
+    INSERT INTO Patron (Name, Email, Address)
+    VALUES (in_Name, in_Email, in_Address);
 END //
 DELIMITER ;
 
@@ -604,8 +594,8 @@ CREATE PROCEDURE CreateMeeting (
     IN in_Date DATE
 )
 BEGIN
-    INSERT INTO Meeting (MeetingID, Type, Date)
-    VALUES ((SELECT IFNULL(MAX(MeetingID), 0) + 1 FROM Meeting), in_Type, in_Date);
+    INSERT INTO Meeting (Type, Date)
+    VALUES (in_Type, in_Date);
 END //
 DELIMITER ;
 
@@ -717,8 +707,8 @@ CREATE PROCEDURE CreateSeat (
     IN in_Number TINYINT
 )
 BEGIN
-    INSERT INTO Seat (SeatID, SeatRow, Number)
-    VALUES ((SELECT IFNULL(MAX(SeatID), 0) + 1 FROM Seat), in_SeatRow, in_Number);
+    INSERT INTO Seat (SeatRow, Number)
+    VALUES (in_SeatRow, in_Number);
 END //
 DELIMITER ;
 

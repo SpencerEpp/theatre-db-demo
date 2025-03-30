@@ -1,11 +1,11 @@
-PlayID,Title,Author,Genre,NumberOfActs,Cost
-1,Play 1,Cameron Cooper,Comedy,1,121.24
-2,Play 2,Elizabeth Lopez,Comedy,2,134.75
-3,Play 3,Valerie Haynes,Comedy,2,258.25
-4,Play 4,Brian Cole,Drama,3,140.53
-5,Play 5,Jacqueline Baxter,Drama,3,270.31
-6,Play 6,Jacqueline Warren,Drama,3,222.25
-7,Play 7,Kyle Benson,Tragedy,3,274.94
-8,Play 8,Matthew Moore,Tragedy,2,170.21
-9,Play 9,Natasha Garcia,Comedy,2,259.25
-10,Play 10,Sandra Walters,Tragedy,1,211.18
+Title,Author,Genre,NumberOfActs,Cost
+Play 1,Cameron Cooper,Comedy,1,121.24
+Play 2,Elizabeth Lopez,Comedy,2,134.75
+Play 3,Valerie Haynes,Comedy,2,258.25
+Play 4,Brian Cole,Drama,3,140.53
+Play 5,Jacqueline Baxter,Drama,3,270.31
+Play 6,Jacqueline Warren,Drama,3,222.25
+Play 7,Kyle Benson,Tragedy,3,274.94
+Play 8,Matthew Moore,Tragedy,2,170.21
+Play 9,Natasha Garcia,Comedy,2,259.25
+Play 10,Sandra Walters,Tragedy,1,211.18

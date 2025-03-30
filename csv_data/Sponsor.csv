@@ -1,11 +1,11 @@
-SponsorID,Name,Type
-1,Sponsor 1,I
-2,Sponsor 2,I
-3,Sponsor 3,C
-4,Sponsor 4,C
-5,Sponsor 5,I
-6,Sponsor 6,C
-7,Sponsor 7,I
-8,Sponsor 8,I
-9,Sponsor 9,C
-10,Sponsor 10,C
+Name,Type
+Sponsor 1,I
+Sponsor 2,I
+Sponsor 3,C
+Sponsor 4,C
+Sponsor 5,I
+Sponsor 6,C
+Sponsor 7,I
+Sponsor 8,I
+Sponsor 9,C
+Sponsor 10,C
