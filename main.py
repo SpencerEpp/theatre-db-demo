@@ -62,7 +62,9 @@ def index():
 
 @app.route('/procedure', methods=['POST'])
 def procedure():
+    print("Incoming form data:", request.form)
     action = request.form.get("action")
+    print("Action received:", action)
 
     args_map = {
         "CreatePlay": [
