@@ -304,7 +304,7 @@ def procedure():
     if action not in args_map:
         return jsonify({"success": False, "error": f"Unknown procedure: {action}"})
 
-    return call_procedure(action, args_map[action])
+    return call_procedure(action, args_map[action]())
 
 @app.route('/function', methods=['POST'])
 def function():
