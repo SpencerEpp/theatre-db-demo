@@ -47,6 +47,7 @@ def import_csv_data():
         print(f"Importing data for table: {table}")
         with open(csv_path, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
+            reader.fieldnames = [name.strip() for name in reader.fieldnames] 
             for row in reader:
                 try:
                     placeholders = ", ".join(["%s"] * len(columns))
