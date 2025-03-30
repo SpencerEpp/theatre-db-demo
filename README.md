@@ -31,10 +31,14 @@ Visit the Live App: [theatre-db-demo-production.up.railway.app](https://theatre-
 - [Python 3.10+](https://www.python.org/downloads/)
 - [Node.js (for Railway CLI)](https://nodejs.org/)
 - [MySQL Server (Windows Installer)](https://dev.mysql.com/downloads/installer/)
-During MySQL install, select **MySQL Server** and **MySQL Shell** components only (Workbench optional).
+During MySQL install, select **MySQL Server**, **MySQL Shell**, **MySQL Workbench**.
 
 ---
 ### Instructions
+
+If you just want to edit the code follow steps 1-5, if you are deploying a new project follow step 6,
+if you are updating the schema follow steps 7-10.
+
 1. Clone this repository, Run command: git clone https://github.com/yourusername/theatre-db-demo.git
 2. Cd to project, Run command: cd theatre-db-demo
 
@@ -60,20 +64,20 @@ Note: 2 and 3 are optional but recommended.
         ``` 
     g) Deploy the project
 
-7. Load the Database Schema (via Railway CLI):
-    a) Run command in bash not venv: npm install -g @railway/cli (if not already installed)
-    b) Run command in bash: railway login
-    c) Run command in bash: railway link
-    d) Run command in bash: railway connect mysql
-     — leave this terminal open!
+7. Open MySQL Workbench, and connect to the db
+    - Connection Name: Railway
+    - Host name: metro.proxy.rlwy.net
+    - Port: 36017
+    - Username: root
+    - Password: ********* (ask spencer for password or get him to update schema)
 
-8. Run the schema file:
-    - Run command in bash: mysql -h nozomi.proxy.rlwy.net -u root -p **** --port 43504 --protocol=TCP railway  
-    - Password has been hidden, discord spencer if you need it or have him update the schema
+8. Open Railway connection and import theatre.sql
+9. Open schemas tab (bottom left) and right click on railway db, select 'Set as Default Schema'
+10. Shift + Ctrl + Enter to run sql file, this will import everything into the hosted db
 
 ---
 
 ## Updating the Schema
 If you want to **wipe and rebuild** the DB from `theatre.sql`:
 
-1. Follow step 7 and 8 from above.
+1. Follow steps 7-10 from above.
