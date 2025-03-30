@@ -43,6 +43,8 @@ def call_procedure(proc_name, args=()):
             results.extend(result.fetchall())
         return {"success": True, "data": results or "Procedure executed successfully."}
     except Exception as e:
+        print("Exception during call_procedure:", str(e))
+        print(traceback.format_exc())
         return {"success": False, "error": str(e), "trace": traceback.format_exc()}
     finally:
         cursor.close()
