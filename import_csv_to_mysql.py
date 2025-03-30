@@ -1,7 +1,14 @@
 import os
 import csv
 import mysql.connector
-from main import db_config 
+
+db_config = {
+    'host': os.getenv('MYSQLHOST'),
+    'user': os.getenv('MYSQLUSER'),
+    'password': os.getenv('MYSQL_ROOT_PASSWORD'),
+    'database': os.getenv('MYSQLDATABASE'),
+    'port': int(os.getenv('MYSQLPORT', 3306))
+}
 
 csv_dir = "csv"  # Folder where your CSVs live (relative to project root)
 
