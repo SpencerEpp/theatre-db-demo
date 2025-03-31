@@ -16,7 +16,9 @@ FUNCTIONS TO ADD (IDK if we need these tbh, cuz idk whats going to use them)
    65-70 pages, spencer will email the prof about submission. (pdf or pdf and zip of repo)
 
 Currently known errors:
-During csv import only production_play table isn't populated, this error extents to AddPlayToProduction, 
-the error: Unknown column 'PlayID' in 'feild list' - yet the csv is correct, the loading code is correct 
-and the correct table with the correct column exists in the db, tbh I'm at a loss with this error I've 
-spent like 3hrs on it.
+- During csv import only production_play table isn't populated, this error extents to AddPlayToProduction, 
+  the error: Unknown column 'PlayID' in 'feild list' - yet the csv is correct, the loading code is correct 
+  and the correct table with the correct column exists in the db, tbh I'm at a loss with this error I've 
+  spent like 3hrs on it.
+- Calculated field in production doesnt work.
+- Trigger to update total cost in production doesnt work.
