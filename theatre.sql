@@ -63,11 +63,11 @@ DROP PROCEDURE IF EXISTS AddDuesInstallment;
 DROP PROCEDURE IF EXISTS UndoDuesInstallment;
 DROP PROCEDURE IF EXISTS PurchaseTicket;
 DROP PROCEDURE IF EXISTS UndoTicketPurchase;
-DROP PROCEDURE IF EXISTS ListTicketsForProduction;
-DROP PROCEDURE IF EXISTS GetMemberParticipation;
-DROP PROCEDURE IF EXISTS GetProductionFinancialSummary;
 
 -- Report procedures
+DROP PROCEDURE IF EXISTS ListTicketsForProduction; 
+DROP PROCEDURE IF EXISTS GetMemberParticipation;
+DROP PROCEDURE IF EXISTS GetProductionFinancialSummary;
 DROP PROCEDURE IF EXISTS GetPlayListingReport;
 DROP PROCEDURE IF EXISTS GetProductionCastAndCrew;
 DROP PROCEDURE IF EXISTS GetProductionSponsors;
@@ -77,16 +77,18 @@ DROP PROCEDURE IF EXISTS GetMemberDuesReport;
 DROP PROCEDURE IF EXISTS SuggestAlternateSeats;
 DROP PROCEDURE IF EXISTS SmartTicketPurchase;
 
-DROP VIEW IF EXISTS vw_PlayListing
-DROP VIEW IF EXISTS vw_CastCrewByProduction
-DROP VIEW IF EXISTS vw_SponsorContributions
-DROP VIEW IF EXISTS vw_PatronHistory
-DROP VIEW IF EXISTS vw_TicketSalesByProduction
-DROP VIEW IF EXISTS vw_MemberDuesStatus
-DROP VIEW IF EXISTS vw_ProductionBalanceSheet
+DROP VIEW IF EXISTS vw_PlayListing;
+DROP VIEW IF EXISTS vw_CastCrewByProduction;
+DROP VIEW IF EXISTS vw_SponsorContributions;
+DROP VIEW IF EXISTS vw_PatronHistory;
+DROP VIEW IF EXISTS vw_TicketSalesByProduction;
+DROP VIEW IF EXISTS vw_MemberDuesStatus;
+DROP VIEW IF EXISTS vw_ProductionBalanceSheet;
+DROP VIEW IF EXISTS vw_TicketSummary;
 
 DROP FUNCTION IF EXISTS GetTotalPaidForDues;
 
+-- This is to purge all tables therefore foreign keys dont matter
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS Financial_Transaction;
 DROP TABLE IF EXISTS Member_Meeting;
@@ -262,8 +264,6 @@ CREATE TABLE Financial_Transaction (
     FOREIGN KEY (ProductionID) REFERENCES Production(ProductionID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-
-
 -- ========================================================================================
 -- Scripts NOTE: The below has not been tested yet from scripts to the end. (March 28th 10pm)
 -- ========================================================================================
@@ -282,6 +282,41 @@ CREATE PROCEDURE CreatePlay (
     IN in_Cost DECIMAL(12,2)
 )
 BEGIN
+    -- Validation
+    IF in_Title IS NULL OR CHAR_LENGTH(in_Title) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Title is required';
+    END IF;
+    IF CHAR_LENGTH(in_Title) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Title cannot exceed 100 characters';
+    END IF;
+    IF in_Author IS NULL OR CHAR_LENGTH(in_Author) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Author is required';
+    END IF;
+    IF CHAR_LENGTH(in_Author) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Author cannot exceed 255 characters';
+    END IF;
+    IF in_Genre IS NULL OR CHAR_LENGTH(in_Genre) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Genre is required';
+    END IF;
+    IF CHAR_LENGTH(in_Genre) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Genre cannot exceed 100 characters';
+    END IF;
+    IF in_NumberOfActs IS NULL OR in_NumberOfActs < 1 OR in_NumberOfActs > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'NumberOfActs must be between 1 and 255';
+    END IF;
+    IF in_Cost IS NULL OR in_Cost < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cost must be non-negative';
+    END IF;
+
+    -- Main logic
     INSERT INTO Play (Title, Author, Genre, NumberOfActs, Cost)
     VALUES (in_Title, in_Author, in_Genre, in_NumberOfActs, in_Cost);
 END //
@@ -298,6 +333,49 @@ CREATE PROCEDURE UpdatePlay (
     IN in_Cost DECIMAL(12,2)
 )
 BEGIN
+    -- Validation
+    IF in_PlayID IS NULL OR in_PlayID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PlayID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Play WHERE PlayID = in_PlayID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PlayID does not exist';
+    END IF;
+    IF in_Title IS NULL OR CHAR_LENGTH(in_Title) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Title is required';
+    END IF;
+    IF CHAR_LENGTH(in_Title) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Title cannot exceed 100 characters';
+    END IF;
+    IF in_Author IS NULL OR CHAR_LENGTH(in_Author) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Author is required';
+    END IF;
+    IF CHAR_LENGTH(in_Author) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Author cannot exceed 255 characters';
+    END IF;
+    IF in_Genre IS NULL OR CHAR_LENGTH(in_Genre) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Genre is required';
+    END IF;
+    IF CHAR_LENGTH(in_Genre) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Genre cannot exceed 100 characters';
+    END IF;
+    IF in_NumberOfActs IS NULL OR in_NumberOfActs < 1 OR in_NumberOfActs > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'NumberOfActs must be between 1 and 255';
+    END IF;
+    IF in_Cost IS NULL OR in_Cost < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cost must be non-negative';
+    END IF;
+
+    -- Main logic
     UPDATE Play
     SET
         Title = in_Title,
@@ -315,6 +393,17 @@ CREATE PROCEDURE DeletePlay (
     IN in_PlayID INT
 )
 BEGIN
+    -- Validation
+    IF in_PlayID IS NULL OR in_PlayID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PlayID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Play WHERE PlayID = in_PlayID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PlayID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Play
     WHERE PlayID = in_PlayID;
 END //
@@ -330,6 +419,49 @@ CREATE PROCEDURE CreateMember (
     IN in_Role VARCHAR(100)
 )
 BEGIN
+    -- Validation
+    IF in_Name IS NULL OR CHAR_LENGTH(in_Name) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Name is required';
+    END IF;
+    IF CHAR_LENGTH(in_Name) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Name cannot exceed 255 characters';
+    END IF;
+    IF in_Email IS NULL OR CHAR_LENGTH(in_Email) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email is required';
+    END IF;
+    IF CHAR_LENGTH(in_Email) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email cannot exceed 100 characters';
+    END IF;
+    IF in_Phone IS NULL OR CHAR_LENGTH(in_Phone) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Phone is required';
+    END IF;
+    IF CHAR_LENGTH(in_Phone) > 20 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Phone cannot exceed 20 characters';
+    END IF;
+    IF in_Address IS NULL OR CHAR_LENGTH(in_Address) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address is required';
+    END IF;
+    IF CHAR_LENGTH(in_Address) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address cannot exceed 100 characters';
+    END IF;
+    IF in_Role IS NULL OR CHAR_LENGTH(in_Role) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Role is required';
+    END IF;
+    IF CHAR_LENGTH(in_Role) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Role cannot exceed 100 characters';
+    END IF;
+
+    -- Main logic
     INSERT INTO Member (Name, Email, Phone, Address, Role)
     VALUES (in_Name, in_Email, in_Phone, in_Address, in_Role);
 END //
@@ -346,6 +478,57 @@ CREATE PROCEDURE UpdateMember (
     IN in_Role VARCHAR(100)
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_Name IS NULL OR CHAR_LENGTH(in_Name) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Name is required';
+    END IF;
+    IF CHAR_LENGTH(in_Name) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Name cannot exceed 255 characters';
+    END IF;
+    IF in_Email IS NULL OR CHAR_LENGTH(in_Email) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email is required';
+    END IF;
+    IF CHAR_LENGTH(in_Email) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email cannot exceed 100 characters';
+    END IF;
+    IF in_Phone IS NULL OR CHAR_LENGTH(in_Phone) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Phone is required';
+    END IF;
+    IF CHAR_LENGTH(in_Phone) > 20 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Phone cannot exceed 20 characters';
+    END IF;
+    IF in_Address IS NULL OR CHAR_LENGTH(in_Address) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address is required';
+    END IF;
+    IF CHAR_LENGTH(in_Address) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address cannot exceed 100 characters';
+    END IF;
+    IF in_Role IS NULL OR CHAR_LENGTH(in_Role) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Role is required';
+    END IF;
+    IF CHAR_LENGTH(in_Role) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Role cannot exceed 100 characters';
+    END IF;
+
+    -- Main logic
     UPDATE Member
     SET Name = in_Name,
         Email = in_Email,
@@ -362,6 +545,17 @@ CREATE PROCEDURE DeleteMember (
     IN in_MemberID INT
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Member WHERE MemberID = in_MemberID;
 END //
 DELIMITER ;
@@ -374,6 +568,40 @@ CREATE PROCEDURE AssignMemberToProduction (
     IN in_Role VARCHAR(100)
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_Role IS NULL OR CHAR_LENGTH(in_Role) < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Role is required';
+    END IF;
+    IF CHAR_LENGTH(in_Role) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Role cannot exceed 100 characters';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM Member_Production
+        WHERE MemberID = in_MemberID AND ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Member is already assigned to this production';
+    END IF;
+
+    -- Main logic
     INSERT INTO Member_Production (MemberID, ProductionID, Role)
     VALUES (in_MemberID, in_ProductionID, in_Role);
 END //
@@ -386,6 +614,32 @@ CREATE PROCEDURE RemoveMemberFromProduction (
     IN in_ProductionID INT
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Member_Production
+        WHERE MemberID = in_MemberID AND ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'This member is not assigned to that production';
+    END IF;
+
+    -- Main logic
     DELETE FROM Member_Production
     WHERE MemberID = in_MemberID AND ProductionID = in_ProductionID;
 END //
@@ -397,6 +651,17 @@ CREATE PROCEDURE CreateProduction (
     IN in_ProductionDate DATE
 )
 BEGIN
+    -- Validation
+    IF in_ProductionDate IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Production date is required';
+    END IF;
+    IF in_ProductionDate < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Production date cannot be in the past';
+    END IF;
+
+    -- Main logic
     INSERT INTO Production (ProductionDate)
     VALUES (in_ProductionDate);
 END //
@@ -409,6 +674,25 @@ CREATE PROCEDURE UpdateProduction (
     IN in_ProductionDate DATE
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_ProductionDate IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Production date is required';
+    END IF;
+    IF in_ProductionDate < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Production date cannot be in the past';
+    END IF;
+
+    -- Main logic
     UPDATE Production
     SET ProductionDate = in_ProductionDate
     WHERE ProductionID = in_ProductionID;
@@ -421,6 +705,17 @@ CREATE PROCEDURE DeleteProduction (
     IN in_ProductionID INT
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Production WHERE ProductionID = in_ProductionID;
 END //
 DELIMITER ;
@@ -433,6 +728,36 @@ CREATE PROCEDURE LinkSponsorToProduction (
     IN in_Amount DECIMAL(12,2)
 )
 BEGIN
+    -- Validation
+    IF in_SponsorID IS NULL OR in_SponsorID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SponsorID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Sponsor WHERE SponsorID = in_SponsorID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SponsorID does not exist';
+    END IF;
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_Amount IS NULL OR in_Amount < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Contribution amount must be non-negative';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM Production_Sponsor
+        WHERE SponsorID = in_SponsorID AND ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor is already linked to this production';
+    END IF;
+
+    -- Main logic
     INSERT INTO Production_Sponsor (SponsorID, ProductionID, ContributionAmount)
     VALUES (in_SponsorID, in_ProductionID, in_Amount);
 END //
@@ -445,6 +770,32 @@ CREATE PROCEDURE UnlinkSponsorFromProduction (
     IN in_ProductionID INT
 )
 BEGIN
+    -- Validation
+    IF in_SponsorID IS NULL OR in_SponsorID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SponsorID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Sponsor WHERE SponsorID = in_SponsorID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SponsorID does not exist';
+    END IF;
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Production_Sponsor
+        WHERE SponsorID = in_SponsorID AND ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor is not linked to this production';
+    END IF;
+
+    -- Main logic
     DELETE FROM Production_Sponsor
     WHERE SponsorID = in_SponsorID AND ProductionID = in_ProductionID;
 END //
@@ -459,6 +810,37 @@ CREATE PROCEDURE CreateTicket (
     IN in_ReservationDeadline DATE
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_SeatID IS NULL OR in_SeatID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SeatID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Seat WHERE SeatID = in_SeatID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatID does not exist';
+    END IF;
+    IF in_Price IS NULL OR in_Price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ticket price must be non-negative';
+    END IF;
+    IF in_ReservationDeadline IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Reservation deadline is required';
+    END IF;
+    IF in_ReservationDeadline < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Reservation deadline cannot be in the past';
+    END IF;
+
+    -- Main logic
     INSERT INTO Ticket (ProductionID, SeatID, Price, Status, ReservationDeadline)
     VALUES (in_ProductionID, in_SeatID, in_Price,'A', in_ReservationDeadline);
 END //
@@ -470,9 +852,19 @@ CREATE PROCEDURE ReleaseTicket (
     IN in_TicketID INT
 )
 BEGIN
+    -- Validation
+    IF in_TicketID IS NULL OR in_TicketID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TicketID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Ticket WHERE TicketID = in_TicketID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'TicketID does not exist';
+    END IF;
+
+    -- Main logic
     UPDATE Ticket
-    SET Status = 'A',
-        PatronID = NULL
+    SET Status = 'A', PatronID = NULL
     WHERE TicketID = in_TicketID;
 END //
 DELIMITER ;
@@ -484,6 +876,21 @@ CREATE PROCEDURE UpdateTicketStatus (
     IN in_Status ENUM('S', 'A')
 )
 BEGIN
+    -- Validation
+    IF in_TicketID IS NULL OR in_TicketID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TicketID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Ticket WHERE TicketID = in_TicketID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'TicketID does not exist';
+    END IF;
+    IF in_Status IS NULL OR in_Status NOT IN ('A', 'S') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Status must be either "A" (available) or "S" (sold)';
+    END IF;
+
+    -- Main logic
     UPDATE Ticket
     SET Status = in_Status
     WHERE TicketID = in_TicketID;
@@ -497,6 +904,21 @@ CREATE PROCEDURE UpdateTicketPrice (
     IN in_NewPrice DECIMAL(6,2)
 )
 BEGIN
+    -- Validation
+    IF in_TicketID IS NULL OR in_TicketID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TicketID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Ticket WHERE TicketID = in_TicketID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'TicketID does not exist';
+    END IF;
+    IF in_NewPrice IS NULL OR in_NewPrice < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'New price must be a non-negative value';
+    END IF;
+
+    -- Main logic
     UPDATE Ticket
     SET Price = in_NewPrice
     WHERE TicketID = in_TicketID;
@@ -509,9 +931,26 @@ CREATE PROCEDURE CancelReservation (
     IN in_TicketID INT
 )
 BEGIN
+    -- Validation
+    IF in_TicketID IS NULL OR in_TicketID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TicketID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Ticket WHERE TicketID = in_TicketID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'TicketID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Ticket
+        WHERE TicketID = in_TicketID AND PatronID IS NOT NULL
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ticket is not currently reserved';
+    END IF;
+
+    -- Main logic
     UPDATE Ticket
-    SET PatronID = NULL,
-        Status = 'A'
+    SET PatronID = NULL, Status = 'A'
     WHERE TicketID = in_TicketID;
 END //
 DELIMITER ;
@@ -523,6 +962,21 @@ CREATE PROCEDURE CreateSponsor (
     IN in_Type ENUM('C', 'I') -- C = Company, I = Individual
 )
 BEGIN
+    -- Validation
+    IF in_Name IS NULL OR CHAR_LENGTH(in_Name) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor name is required';
+    END IF;
+    IF CHAR_LENGTH(in_Name) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor name cannot exceed 255 characters';
+    END IF;
+    IF in_Type IS NULL OR in_Type NOT IN ('C', 'I') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor type must be either "C" (Company) or "I" (Individual)';
+    END IF;
+
+    -- Main logic
     INSERT INTO Sponsor (Name, Type)
     VALUES (in_Name, in_Type);
 END //
@@ -536,6 +990,29 @@ CREATE PROCEDURE UpdateSponsor (
     IN in_Type ENUM('C', 'I')
 )
 BEGIN
+    -- Validation
+    IF in_SponsorID IS NULL OR in_SponsorID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SponsorID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Sponsor WHERE SponsorID = in_SponsorID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SponsorID does not exist';
+    END IF;
+    IF in_Name IS NULL OR CHAR_LENGTH(in_Name) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor name is required';
+    END IF;
+    IF CHAR_LENGTH(in_Name) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor name cannot exceed 255 characters';
+    END IF;
+    IF in_Type IS NULL OR in_Type NOT IN ('C', 'I') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Sponsor type must be either "C" (Company) or "I" (Individual)';
+    END IF;
+
+    -- Main logic
     UPDATE Sponsor
     SET Name = in_Name,
         Type = in_Type
@@ -549,6 +1026,17 @@ CREATE PROCEDURE DeleteSponsor (
     IN in_SponsorID INT
 )
 BEGIN
+    -- Validation
+    IF in_SponsorID IS NULL OR in_SponsorID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SponsorID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Sponsor WHERE SponsorID = in_SponsorID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SponsorID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Sponsor
     WHERE SponsorID = in_SponsorID;
 END //
@@ -562,6 +1050,33 @@ CREATE PROCEDURE CreatePatron (
     IN in_Address VARCHAR(100)
 )
 BEGIN
+    -- Validation
+    IF in_Name IS NULL OR CHAR_LENGTH(in_Name) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patron name is required';
+    END IF;
+    IF CHAR_LENGTH(in_Name) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patron name cannot exceed 255 characters';
+    END IF;
+    IF in_Email IS NULL OR CHAR_LENGTH(in_Email) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email is required';
+    END IF;
+    IF CHAR_LENGTH(in_Email) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email cannot exceed 100 characters';
+    END IF;
+    IF in_Address IS NULL OR CHAR_LENGTH(in_Address) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address is required';
+    END IF;
+    IF CHAR_LENGTH(in_Address) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address cannot exceed 100 characters';
+    END IF;
+
+    -- Main logic
     INSERT INTO Patron (Name, Email, Address)
     VALUES (in_Name, in_Email, in_Address);
 END //
@@ -576,10 +1091,43 @@ CREATE PROCEDURE UpdatePatron (
     IN in_Address VARCHAR(100)
 )
 BEGIN
+    -- Validation
+    IF in_PatronID IS NULL OR in_PatronID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PatronID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Patron WHERE PatronID = in_PatronID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+    IF in_Name IS NULL OR CHAR_LENGTH(in_Name) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patron name is required';
+    END IF;
+    IF CHAR_LENGTH(in_Name) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Patron name cannot exceed 255 characters';
+    END IF;
+    IF in_Email IS NULL OR CHAR_LENGTH(in_Email) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email is required';
+    END IF;
+    IF CHAR_LENGTH(in_Email) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Email cannot exceed 100 characters';
+    END IF;
+    IF in_Address IS NULL OR CHAR_LENGTH(in_Address) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address is required';
+    END IF;
+    IF CHAR_LENGTH(in_Address) > 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Address cannot exceed 100 characters';
+    END IF;
+
+    -- Main logic
     UPDATE Patron
-    SET Name = in_Name,
-        Email = in_Email,
-        Address = in_Address
+    SET Name = in_Name, Email = in_Email, Address = in_Address
     WHERE PatronID = in_PatronID;
 END //
 DELIMITER ;
@@ -590,6 +1138,17 @@ CREATE PROCEDURE DeletePatron (
     IN in_PatronID INT
 )
 BEGIN
+    -- Validation
+    IF in_PatronID IS NULL OR in_PatronID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PatronID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Patron WHERE PatronID = in_PatronID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Patron
     WHERE PatronID = in_PatronID;
 END //
@@ -602,6 +1161,21 @@ CREATE PROCEDURE CreateMeeting (
     IN in_Date DATE
 )
 BEGIN
+    -- Validation
+    IF in_Type IS NULL OR in_Type NOT IN ('F', 'S') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Meeting type must be either "F" (Fall) or "S" (Spring)';
+    END IF;
+    IF in_Date IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Meeting date is required';
+    END IF;
+    IF in_Date < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Meeting date cannot be in the past';
+    END IF;
+
+    -- Main logic
     INSERT INTO Meeting (Type, Date)
     VALUES (in_Type, in_Date);
 END //
@@ -615,9 +1189,31 @@ CREATE PROCEDURE UpdateMeeting (
     IN in_Date DATE
 )
 BEGIN
+    -- Validation
+    IF in_MeetingID IS NULL OR in_MeetingID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MeetingID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Meeting WHERE MeetingID = in_MeetingID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MeetingID does not exist';
+    END IF;
+    IF in_Type IS NULL OR in_Type NOT IN ('F', 'S') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Meeting type must be either "F" (Fall) or "S" (Spring)';
+    END IF;
+    IF in_Date IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Meeting date is required';
+    END IF;
+    IF in_Date < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Meeting date cannot be in the past';
+    END IF;
+
+    -- Main logic
     UPDATE Meeting
-    SET Type = in_Type,
-        Date = in_Date
+    SET Type = in_Type, Date = in_Date
     WHERE MeetingID = in_MeetingID;
 END //
 DELIMITER ;
@@ -628,6 +1224,17 @@ CREATE PROCEDURE DeleteMeeting (
     IN in_MeetingID INT
 )
 BEGIN
+    -- Validation
+    IF in_MeetingID IS NULL OR in_MeetingID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MeetingID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Meeting WHERE MeetingID = in_MeetingID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MeetingID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Meeting WHERE MeetingID = in_MeetingID;
 END //
 DELIMITER ;
@@ -639,6 +1246,32 @@ CREATE PROCEDURE AssignMemberToMeeting (
     IN in_MeetingID INT
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_MeetingID IS NULL OR in_MeetingID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MeetingID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Meeting WHERE MeetingID = in_MeetingID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MeetingID does not exist';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM Member_Meeting
+        WHERE MemberID = in_MemberID AND MeetingID = in_MeetingID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Member is already assigned to this meeting';
+    END IF;
+
+    -- Main logic
     INSERT INTO Member_Meeting (MemberID, MeetingID)
     VALUES (in_MemberID, in_MeetingID);
 END //
@@ -651,6 +1284,32 @@ CREATE PROCEDURE RemoveMemberFromMeeting (
     IN in_MeetingID INT
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_MeetingID IS NULL OR in_MeetingID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MeetingID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Meeting WHERE MeetingID = in_MeetingID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MeetingID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Member_Meeting
+        WHERE MemberID = in_MemberID AND MeetingID = in_MeetingID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'This member is not assigned to that meeting';
+    END IF;
+
+    -- Main logic
     DELETE FROM Member_Meeting
     WHERE MemberID = in_MemberID AND MeetingID = in_MeetingID;
 END //
@@ -664,6 +1323,31 @@ CREATE PROCEDURE CreateDuesRecord (
     IN in_TotalAmount DECIMAL(6,2)
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_Year IS NULL OR in_Year < YEAR(CURDATE()) OR in_Year > YEAR(CURDATE()) + 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Dues can only be recorded for the current or next year';
+    END IF;
+    IF in_TotalAmount IS NULL OR in_TotalAmount < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Total amount due must be a non-negative value';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM DuesOwed WHERE MemberID = in_MemberID AND Year = in_Year
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Dues record for this member and year already exists';
+    END IF;
+
+    -- Main logic
     INSERT INTO DuesOwed (MemberID, Year, TotalDue)
     VALUES (in_MemberID, in_Year, in_TotalAmount);
 END //
@@ -675,6 +1359,17 @@ CREATE PROCEDURE DeleteDuesRecord (
     IN in_DuesID INT
 )
 BEGIN
+    -- Validation
+    IF in_DuesID IS NULL OR in_DuesID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid DuesID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM DuesOwed WHERE DuesID = in_DuesID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'DuesID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM DuesOwed WHERE DuesID = in_DuesID;
 END //
 DELIMITER ;
@@ -686,6 +1381,32 @@ CREATE PROCEDURE CheckSeatAvailability (
     IN in_SeatID INT
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_SeatID IS NULL OR in_SeatID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SeatID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Seat WHERE SeatID = in_SeatID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Ticket
+        WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No ticket found for this seat in the specified production';
+    END IF;
+
+    -- Main logic
     SELECT Status, PatronID, ReservationDeadline
     FROM Ticket
     WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID;
@@ -700,21 +1421,74 @@ CREATE PROCEDURE ReserveTicket (
     IN in_Deadline DATE
 )
 BEGIN
+    -- Validation
+    IF in_TicketID IS NULL OR in_TicketID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TicketID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Ticket WHERE TicketID = in_TicketID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'TicketID does not exist';
+    END IF;
+    IF in_PatronID IS NULL OR in_PatronID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PatronID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Patron WHERE PatronID = in_PatronID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+    IF in_Deadline IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Reservation deadline is required';
+    END IF;
+    IF in_Deadline < CURDATE() THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Reservation deadline cannot be in the past';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM Ticket
+        WHERE TicketID = in_TicketID AND (Status <> 'A' OR PatronID IS NOT NULL)
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ticket is not available for reservation';
+    END IF;
+
+    -- Main logic
     UPDATE Ticket
-    SET PatronID = in_PatronID,
-        Status = 'A',
-        ReservationDeadline = in_Deadline
+    SET PatronID = in_PatronID, Status = 'A', ReservationDeadline = in_Deadline
     WHERE TicketID = in_TicketID;
 END //
 DELIMITER ;
 
--- CREATE SEAT
+-- CREATE SEAT (A-Z, 1-50)
 DELIMITER //
 CREATE PROCEDURE CreateSeat (
     IN in_SeatRow CHAR(1),
     IN in_Number TINYINT
 )
 BEGIN
+    -- Validation
+    IF in_SeatRow IS NULL OR CHAR_LENGTH(in_SeatRow) <> 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatRow must be a single character';
+    END IF;
+    IF in_Number IS NULL OR in_Number < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Seat number must be a positive integer';
+    END IF;
+    IF in_Number > 50 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Seat number must not exceed 50';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM Seat WHERE SeatRow = in_SeatRow AND Number = in_Number
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Seat already exists';
+    END IF;
+
+    -- Main logic
     INSERT INTO Seat (SeatRow, Number)
     VALUES (in_SeatRow, in_Number);
 END //
@@ -728,9 +1502,38 @@ CREATE PROCEDURE UpdateSeat (
     IN in_Number TINYINT
 )
 BEGIN
+    -- Validation
+    IF in_SeatID IS NULL OR in_SeatID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SeatID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Seat WHERE SeatID = in_SeatID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatID does not exist';
+    END IF;
+    IF in_SeatRow IS NULL OR CHAR_LENGTH(in_SeatRow) <> 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatRow must be a single character';
+    END IF;
+    IF in_Number IS NULL OR in_Number < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Seat number must be a positive integer';
+    END IF;
+    IF in_Number > 50 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Seat number must not exceed 50';
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM Seat
+        WHERE SeatRow = in_SeatRow AND Number = in_Number AND SeatID <> in_SeatID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Another seat with the same row and number already exists';
+    END IF;
+
+    -- Main logic
     UPDATE Seat
-    SET SeatRow = in_SeatRow,
-        Number = in_Number
+    SET SeatRow = in_SeatRow, Number = in_Number
     WHERE SeatID = in_SeatID;
 END //
 DELIMITER ;
@@ -741,6 +1544,17 @@ CREATE PROCEDURE DeleteSeat (
     IN in_SeatID INT
 )
 BEGIN
+    -- Validation
+    IF in_SeatID IS NULL OR in_SeatID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SeatID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Seat WHERE SeatID = in_SeatID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatID does not exist';
+    END IF;
+
+    -- Main logic
     DELETE FROM Seat WHERE SeatID = in_SeatID;
 END //
 DELIMITER ;
@@ -752,16 +1566,34 @@ CREATE PROCEDURE AddPlayToProduction (
     IN in_PlayID INT
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_PlayID IS NULL OR in_PlayID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PlayID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Play WHERE PlayID = in_PlayID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PlayID does not exist';
+    END IF;
     IF EXISTS (
         SELECT 1 FROM Production_Play
         WHERE ProductionID = in_ProductionID AND PlayID = in_PlayID
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'This play is already linked to the production.';
-    ELSE
-        INSERT INTO Production_Play (ProductionID, PlayID)
-        VALUES (in_ProductionID, in_PlayID);
     END IF;
+
+    -- Main logic
+    INSERT INTO Production_Play (ProductionID, PlayID)
+    VALUES (in_ProductionID, in_PlayID);
 END //
 DELIMITER ;
 
@@ -772,6 +1604,32 @@ CREATE PROCEDURE UndoPlayFromProduction (
     IN in_PlayID INT
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_PlayID IS NULL OR in_PlayID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PlayID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Play WHERE PlayID = in_PlayID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PlayID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Production_Play
+        WHERE ProductionID = in_ProductionID AND PlayID = in_PlayID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'This play is not linked to the specified production';
+    END IF;
+
+    -- Main logic
     -- Delete associated base cost transaction
     DELETE FROM Financial_Transaction
     WHERE ProductionID = in_ProductionID
@@ -793,6 +1651,29 @@ CREATE PROCEDURE AddProductionExpense (
     IN in_Description VARCHAR(255)
 )
 BEGIN
+    -- Validation
+    IF in_Amount IS NULL OR in_Amount < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Expense amount must be a non-negative value';
+    END IF;
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_Description IS NULL OR CHAR_LENGTH(in_Description) < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Description is required';
+    END IF;
+    IF CHAR_LENGTH(in_Description) > 255 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Description cannot exceed 255 characters';
+    END IF;
+
+    -- Main logic
     INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description)
     VALUES ('E', in_Amount, IFNULL(in_Date, CURRENT_DATE), in_ProductionID, in_Description);
 END //
@@ -804,6 +1685,20 @@ CREATE PROCEDURE UndoProductionExpense (
     IN in_TransactionID INT
 )
 BEGIN
+    -- Validation
+    IF in_TransactionID IS NULL OR in_TransactionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TransactionID is required';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Financial_Transaction
+        WHERE TransactionID = in_TransactionID AND Type = 'E'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Expense transaction not found or not of type E';
+    END IF;
+
+    -- Main logic
     DELETE FROM Financial_Transaction
     WHERE TransactionID = in_TransactionID
     AND Type = 'E';
@@ -821,6 +1716,24 @@ BEGIN
     DECLARE existingDuesID INT;
     DECLARE totalPaid DECIMAL(10,2);
     DECLARE totalDue DECIMAL(10,2);
+
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+    IF in_Year IS NULL OR in_Year < YEAR(CURDATE()) OR in_Year > YEAR(CURDATE()) + 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Year must be the current or next calendar year';
+    END IF;
+    IF in_Amount IS NULL OR in_Amount <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Installment amount must be greater than zero';
+    END IF;
 
     -- Check if dues record already exists
     SELECT DuesID INTO existingDuesID
@@ -862,6 +1775,17 @@ CREATE PROCEDURE UndoDuesInstallment (
     IN in_PaymentID INT
 )
 BEGIN
+    -- Validation
+    IF in_PaymentID IS NULL OR in_PaymentID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PaymentID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM DuesPayment WHERE PaymentID = in_PaymentID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Dues payment does not exist';
+    END IF;
+
+    -- Main logic
     -- Delete the associated financial transaction
     DELETE FROM Financial_Transaction
     WHERE DuesPaymentID = in_PaymentID;
@@ -886,6 +1810,35 @@ BEGIN
     DECLARE currentPatronID INT;
     DECLARE reservationDeadline DATE;
 
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_SeatID IS NULL OR in_SeatID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid SeatID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Seat WHERE SeatID = in_SeatID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatID does not exist';
+    END IF;
+    IF in_BuyerPatronID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Patron WHERE PatronID = in_BuyerPatronID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Buyer PatronID does not exist';
+    END IF;
+    IF in_Price IS NULL OR in_Price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ticket price must be non-negative';
+    END IF;
+
+    -- Main logic
     -- Look up the ticket record
     SELECT TicketID, Status, PatronID, ReservationDeadline
     INTO ticketID, currentStatus, currentPatronID, reservationDeadline
@@ -921,6 +1874,23 @@ CREATE PROCEDURE UndoTicketPurchase (
     IN in_TicketID INT
 )
 BEGIN
+    -- Validation
+    IF in_TicketID IS NULL OR in_TicketID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid TicketID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Ticket WHERE TicketID = in_TicketID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'TicketID does not exist';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Ticket WHERE TicketID = in_TicketID AND Status = 'S'
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ticket is not currently marked as sold';
+    END IF;
+
+    -- Main logic
     -- Mark the ticket as available again
     UPDATE Ticket
     SET Status = 'A', PatronID = NULL
@@ -932,12 +1902,27 @@ BEGIN
 END //
 DELIMITER ;
 
+-- =========================
+-- REPORT PROCEDURES
+-- =========================
+
 -- LIST TICKETS FOR PRODUCTION
 DELIMITER //
 CREATE PROCEDURE ListTicketsForProduction (
     IN in_ProductionID INT
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+
+    -- Query
     SELECT 
         t.TicketID,
         s.SeatRow,
@@ -960,6 +1945,17 @@ CREATE PROCEDURE GetMemberParticipation (
     IN in_MemberID INT
 )
 BEGIN
+    -- Validation
+    IF in_MemberID IS NULL OR in_MemberID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid MemberID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Member WHERE MemberID = in_MemberID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'MemberID does not exist';
+    END IF;
+
+    -- Query
     SELECT 
         'Production' AS ActivityType,
         p.ProductionID,
@@ -996,6 +1992,29 @@ CREATE PROCEDURE GetProductionFinancialSummary (
     IN in_EndDate DATE
 )
 BEGIN
+    -- Validate ProductionID if provided
+    IF in_ProductionID IS NOT NULL THEN
+        IF in_ProductionID < 1 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ProductionID must be a positive integer';
+        END IF;
+        IF NOT EXISTS (
+            SELECT 1 FROM Production WHERE ProductionID = in_ProductionID
+        ) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ProductionID does not exist';
+        END IF;
+    END IF;
+
+    -- Validate date range if both dates are provided
+    IF in_StartDate IS NOT NULL AND in_EndDate IS NOT NULL THEN
+        IF in_StartDate > in_EndDate THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Start date cannot be after end date';
+        END IF;
+    END IF;
+
+    -- Query
     SELECT
         p.ProductionID,
         p.ProductionDate,
@@ -1012,10 +2031,6 @@ BEGIN
     GROUP BY p.ProductionID, p.ProductionDate;
 END //
 DELIMITER ;
-
--- =========================
--- REPORT PROCEDURES
--- =========================
 
 -- Play Listing Report
 DELIMITER //
@@ -1037,6 +2052,19 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE GetProductionCastAndCrew(IN in_ProductionID INT)
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Production WHERE ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+
+    -- Query
     SELECT 
         m.Name,
         m.Email,
@@ -1053,6 +2081,19 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE GetProductionSponsors(IN in_ProductionID INT)
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Production WHERE ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+
+    -- Query
     SELECT 
         s.Name,
         s.Type,
@@ -1076,6 +2117,19 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE GetPatronReport(IN in_PatronID INT)
 BEGIN
+    -- Validation
+    IF in_PatronID IS NULL OR in_PatronID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid PatronID is required';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Patron WHERE PatronID = in_PatronID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+
+    -- Query
     SELECT 
         p.Name,
         p.Email,
@@ -1103,6 +2157,19 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE GetTicketSalesReport(IN in_ProductionID INT)
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Production WHERE ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+
+    -- Query
     SELECT 
         t.TicketID,
         s.SeatRow,
@@ -1145,52 +2212,78 @@ BEGIN
 END //
 DELIMITER ;
 
--- =========================================
--- SMART TICKET PURCHASE + FALLBACK SUPPORT
--- =========================================
-
--- Smart multi-seat ticket purchase
+-- Smart multi-seat ticket purchase with fall back support
 DELIMITER //
 CREATE PROCEDURE SmartTicketPurchase(
     IN in_ProductionID INT,
-    IN in_PatronID INT,
-    IN in_SeatIDs TEXT, -- e.g. '[1,2,3]'
+    IN in_PatronID INT,        -- Can be NULL (public buyer)
+    IN in_SeatIDs TEXT,        -- e.g., '[1,2,3]'
     IN in_Deadline DATE,
     IN in_Price DECIMAL(6,2)
 )
 BEGIN
-    -- === 1. Declare variables ===
     DECLARE seat_id INT;
-    DECLARE ticket_id INT;
+    DECLARE ticket_id INT DEFAULT NULL;
     DECLARE done INT DEFAULT FALSE;
 
-    -- === 2. Declare cursor ===
+    -- === Validate Inputs ===
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    -- PatronID may be NULL (public purchase), but if it's given, validate it
+    IF in_PatronID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Patron WHERE PatronID = in_PatronID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+    IF in_SeatIDs IS NULL OR JSON_LENGTH(in_SeatIDs) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'At least one seat must be selected';
+    END IF;
+    IF in_Price IS NULL OR in_Price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Price must be a non-negative value';
+    END IF;
+
+    -- === Cursor Setup ===
     DECLARE seat_cursor CURSOR FOR 
         SELECT CAST(value AS UNSIGNED) 
         FROM JSON_TABLE(in_SeatIDs, '$[*]' COLUMNS(value INT PATH '$')) AS jt;
 
-    -- === 3. Declare handlers ===
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    -- === 4. Setup temp error table ===
+    -- === Temp error table ===
     DROP TEMPORARY TABLE IF EXISTS TempErrors;
     CREATE TEMPORARY TABLE TempErrors (
         Message VARCHAR(255)
     );
 
-    -- === 5. Open and process cursor ===
+    -- === Process Each Seat ===
     OPEN seat_cursor;
     seat_loop: LOOP
         FETCH seat_cursor INTO seat_id;
         IF done THEN LEAVE seat_loop; END IF;
 
-        -- Check if the seat is available
-        SELECT TicketID INTO ticket_id
-        FROM Ticket
-        WHERE ProductionID = in_ProductionID AND SeatID = seat_id AND Status = 'A'
-        LIMIT 1;
+        SET ticket_id = NULL;
+
+        -- Safely try to get the available ticket using a local BEGIN block
+        BEGIN
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET ticket_id = NULL;
+
+            SELECT TicketID INTO ticket_id
+            FROM Ticket
+            WHERE ProductionID = in_ProductionID AND SeatID = seat_id AND Status = 'A'
+            LIMIT 1;
+        END;
 
         IF ticket_id IS NOT NULL THEN
+            -- Reserve the ticket
             UPDATE Ticket
             SET PatronID = in_PatronID,
                 Price = in_Price,
@@ -1198,20 +2291,21 @@ BEGIN
                 ReservationDeadline = in_Deadline
             WHERE TicketID = ticket_id;
 
+            -- Log transaction
             INSERT INTO Financial_Transaction (Type, Amount, Date, TicketID, ProductionID, Description)
             VALUES ('I', in_Price, CURRENT_DATE, ticket_id, in_ProductionID, 'Smart Ticket Purchase');
         ELSE
+            -- Record failure for this seat
             INSERT INTO TempErrors (Message)
-            VALUES (CONCAT('Seat ID ', seat_id, ' is not available.'));
+            VALUES (CONCAT('Seat ID ', seat_id, ' is not available or already sold/reserved.'));
         END IF;
     END LOOP;
     CLOSE seat_cursor;
 
-    -- Return all errors
+    -- Return error messages (if any)
     SELECT * FROM TempErrors;
 END //
 DELIMITER ;
-
 
 -- Suggest fallback seats based on row/number ordering
 DELIMITER //
@@ -1220,6 +2314,23 @@ CREATE PROCEDURE SuggestAlternateSeats(
     IN in_SeatCount INT
 )
 BEGIN
+    -- Validation
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM Production WHERE ProductionID = in_ProductionID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    IF in_SeatCount IS NULL OR in_SeatCount < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Seat count must be a positive integer';
+    END IF;
+
+    -- Query
     SELECT t.SeatID, s.SeatRow, s.Number
     FROM Ticket t
     JOIN Seat s ON t.SeatID = s.SeatID
@@ -1229,8 +2340,6 @@ BEGIN
     LIMIT in_SeatCount;
 END //
 DELIMITER ;
-
-
 
 -- ========================================================================================
 -- Triggers
@@ -1369,7 +2478,6 @@ BEGIN
 END //
 DELIMITER ;
 
-
 -- ========================================================================================
 -- Views
 -- ========================================================================================
@@ -1473,12 +2581,11 @@ FROM Production p
 LEFT JOIN Financial_Transaction ft ON p.ProductionID = ft.ProductionID
 GROUP BY p.ProductionID, p.ProductionDate;
 
-
--- ========================================================================================
--- Reports
--- ========================================================================================
-
-
+-- View ticket summary for any given ticket
+CREATE VIEW vw_TicketSummary AS
+SELECT t.TicketID, t.Status, p.Name AS Patron
+FROM Ticket t
+LEFT JOIN Patron p ON t.PatronID = p.PatronID;
 
 -- ========================================================================================
 -- Supporting Code

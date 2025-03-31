@@ -6,6 +6,7 @@
 # Imports
 from flask import Flask, render_template, request, jsonify
 import mysql.connector
+from mysql.connector import Error as MySQLError
 import traceback
 import html
 import os
@@ -31,17 +32,17 @@ def call_procedure(proc_name, args=()):
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
-        print(f"Calling procedure: {proc_name} with args: {args}")
         cursor.callproc(proc_name, args)
-        print("After callproc, about to commit.")
         conn.commit()
-        print("Commited.")
         results = []
         for result in cursor.stored_results():
             fetched = result.fetchall()
             print(f"Fetched result from {proc_name}: {fetched}")
             results.extend(result.fetchall())
         return {"success": True, "data": results or "Procedure executed successfully."}
+    except MySQLError as e:
+        print("MySQL Error:", str(e))
+        return {"success": False, "error": str(e)}
     except Exception as e:
         print("Exception during call_procedure:", str(e))
         print(traceback.format_exc())
@@ -57,7 +58,12 @@ def call_function(query, args=()):
         cursor.execute(query, args)
         result = cursor.fetchone()
         return {"success": True, "data": result[0] if result else "No result"}
+    except MySQLError as e:
+        print("MySQL Error:", str(e))
+        return {"success": False, "error": str(e)}
     except Exception as e:
+        print("Exception during call_function:", str(e))
+        print(traceback.format_exc())
         return {"success": False, "error": str(e), "trace": traceback.format_exc()}
     finally:
         cursor.close()
