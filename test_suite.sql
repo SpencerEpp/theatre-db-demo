@@ -204,7 +204,7 @@ CALL GetProductionCastAndCrew(1);
 CALL GetProductionSponsors(1);
 -- maybe add a way to see what sponsors currently only $ amounts
 
--- TRIGGER TESTS
+-- TRIGGER TESTS (Working, but double check)
 -- Trigger: trg_AddPlayCostTransaction
 INSERT INTO Production_Play (Play_ID, Production_ID) VALUES (1, 1);
 -- Trigger: trg_AutoTransactionOnDuesPayment
@@ -229,3 +229,13 @@ CALL GetTotalPaidForDues(1);
 CALL GetTotalPaidForDues(NULL);
 CALL GetTotalPaidForDues('A');
 CALL GetTotalPaidForDues(9999);
+
+-- Views (Working)
+SELECT * FROM vw_PlayListing;
+SELECT * FROM vw_CastCrewByProduction;
+SELECT * FROM vw_SponsorContributions;
+SELECT * FROM vw_PatronHistory;
+SELECT * FROM vw_TicketSalesByProduction;
+SELECT * FROM vw_MemberDuesStatus;
+SELECT * FROM vw_ProductionBalanceSheet;
+SELECT * FROM vw_TicketSummary
