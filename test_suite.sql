@@ -1,318 +1,208 @@
--- =====================================
+-- ==================================================================
 -- TEST SUITE FOR THEATRE DB
--- =====================================
+-- 
+-- Note: Each call only has one instance of the call be sure to test
+--       all possible invalid inputs along with the valid call. i.e.
+--       chars when its expecting ints, nulls, improper lengths etc. 
+-- ==================================================================
+
 -- AddDuesInstallment
-CALL AddDuesInstallment(1, 50.00, '2024-10-01');
-CALL AddDuesInstallment(9999, 'abc', '2024-10-01'); -- invalid amount
-CALL AddDuesInstallment(1, 0.01, '2024-01-01'); -- min amount
-CALL AddDuesInstallment(1, 999999.99, '2025-12-31'); -- high amount
-CALL AddDuesInstallment(1, -10.00, '2024-01-01'); -- negative amount
-CALL AddDuesInstallment('abc', 25.00, '2024-01-01'); -- invalid dues ID
-CALL AddDuesInstallment(1, 25.00, 'invalid-date'); -- bad date
+CALL AddDuesPayment(1, '2024-10-01', 50.00);
+-- Dues installment uses Year instead of date.
+-- Member can overpay their dues.
+-- Day has off by one error 10 shows up as 9
+
 -- AddPlayToProduction
 CALL AddPlayToProduction(1, 1);
-CALL AddPlayToProduction(9999, 1); -- bad play
-CALL AddPlayToProduction(2, 1); -- different valid play
-CALL AddPlayToProduction(1, 9999); -- bad production
-CALL AddPlayToProduction(NULL, 1); -- null play ID
-CALL AddPlayToProduction(1, NULL); -- null production ID
+-- Same error outlined in todo 
+
 -- AddProductionExpense
-CALL AddProductionExpense(1, 'Props', 200.00);
-CALL AddProductionExpense(NULL, '', -100);
-CALL AddProductionExpense(1, 'Costume', 0);
-CALL AddProductionExpense(1, 'Set', 99999.99);
-CALL AddProductionExpense(1, 'Overbudget', -500);
-CALL AddProductionExpense('x', 'Invalid', 100);
--- AssignMemberToMeeting
+CALL AddProductionExpense(200.00, '2025-10-01', 1, 'Description');
+-- Can add expense of any date (propbaly should allow users to add expenses to past dates for record keeping)
+-- Date can be null shouldnt be allowed
+-- Day has off by one error 10 shows up as 9
+
+-- (Working) AssignMemberToMeeting
 CALL AssignMemberToMeeting(1, 1);
-CALL AssignMemberToMeeting(9999, 1);
-CALL AssignMemberToMeeting(1, 9999);
-CALL AssignMemberToMeeting(NULL, 1);
-CALL AssignMemberToMeeting(1, NULL);
--- AssignMemberToProduction
+
+-- (Working) AssignMemberToProduction
 CALL AssignMemberToProduction(1, 1, 'Director');
-CALL AssignMemberToProduction(2, 9999, 'Stage Crew');
-CALL AssignMemberToProduction(9999, 1, 'Ghost Role');
-CALL AssignMemberToProduction(2, 2, 'Actor'); -- new combo
-CALL AssignMemberToProduction(1, 1, NULL);
-CALL AssignMemberToProduction(1, NULL, 'Actor');
--- CancelReservation
-CALL CancelReservation(1, 1, 'Conflict');
-CALL CancelReservation(NULL, NULL, 'No data');
-CALL CancelReservation(1, 1, ''); -- empty reason
-CALL CancelReservation(1, 1, REPEAT('A', 1000)); -- long reason
+
+-- (Working) CancelReservation
+CALL CancelReservation(1);
+
 -- CheckSeatAvailability
-CALL CheckSeatAvailability(1);
-CALL CheckSeatAvailability(9999);
-CALL CheckSeatAvailability(NULL);
-CALL CheckSeatAvailability('invalid');
+CALL CheckSeatAvailability(1,10); -- Avalible
+CALL CheckSeatAvailability(4, 3); -- Sold
+-- should return the ticketID as well
+
 -- CreateDuesRecord
-CALL CreateDuesRecord(2, 75.00);
-CALL CreateDuesRecord(2, -75.00);
-CALL CreateDuesRecord(NULL, NULL);
-CALL CreateDuesRecord(1, 0);
-CALL CreateDuesRecord(NULL, 50);
-CALL CreateDuesRecord(1, NULL);
-CALL CreateDuesRecord(9999, 50);
+CALL CreateDuesRecord(2, '2025', 75.00);
+-- Error message says 'recorded' should say 'created'
+-- Limited to creating dues for this year or next year, shouldnt be a limitation
+
 -- CreateMeeting
 CALL CreateMeeting('Cast Debrief', '2024-10-15');
-CALL CreateMeeting('', NULL);
-CALL CreateMeeting('', '2024-12-01');
-CALL CreateMeeting('Planning', NULL);
-CALL CreateMeeting(NULL, '2024-12-01');
-CALL CreateMeeting(REPEAT('A', 1000), 'invalid-date');
--- CreateMember
-CALL CreateMember('Frank', 'frank@org.com', '999-999-9999');
-CALL CreateMember('Valid User', 'valid@example.com', '123-456-7890');
-CALL CreateMember('', 'no_name@example.com', '123-456-7890');
-CALL CreateMember('No Email', '', '123-456-7890');
-CALL CreateMember(NULL, 'null_name@example.com', '123-456-7890');
-CALL CreateMember('Name', 'invalid_email', 'no-phone');
--- CreatePatron
-CALL CreatePatron('Daisy Viewer', 'daisy@view.org');
-CALL CreatePatron(NULL, NULL);
-CALL CreatePatron('Test', '');
-CALL CreatePatron('', 'test@email.com');
-CALL CreatePatron(REPEAT('A', 1000), 'x@x.com');
--- CreatePlay
-CALL CreatePlay('New Play Title', 'Short description', 120.00);
-CALL CreatePlay('', 'Empty title', 100.00);
-CALL CreatePlay('Valid', '', 100);
-CALL CreatePlay('Valid', 'Valid', -10);
-CALL CreatePlay('A'*256, 'Overflow title', 100);
+-- Use CHAR(1) instead of enum for proper error message being passed.
+-- Day has off by one error 10 shows up as 9
+
+-- (Working) CreateMember
+CALL CreateMember('Frank', 'frank@org.com', '999-999-9999', 'Address', 'Role');
+
+-- (Working) CreatePatron
+CALL CreatePatron('Daisy Viewer', 'daisy@view.org', 'Address');
+
+-- (Working) CreatePlay
+CALL CreatePlay('New Play Title', 'Auth', 'Spooky', 1, 120.00);
+
 -- CreateProduction
-CALL CreateProduction('Spring Show', '2025-04-01', '2025-06-01');
-CALL CreateProduction('New Show', '2025-01-01', '2025-02-01');
-CALL CreateProduction('', '2025-01-01', '2025-02-01');
-CALL CreateProduction('No Start', NULL, '2025-02-01');
-CALL CreateProduction('No End', '2025-01-01', NULL);
-CALL CreateProduction('Backwards', '2025-02-01', '2025-01-01');
+CALL CreateProduction('2025-06-01');
+-- Day has off by one error 10 shows up as 9
+
 -- CreateSeat
-CALL CreateSeat('C1', 'Upper', 3);
-CALL CreateSeat('', '', NULL);
-CALL CreateSeat('', 'Main', 1);
-CALL CreateSeat('A1', '', 1);
-CALL CreateSeat('A1', 'Main', NULL);
-CALL CreateSeat('A1', 'Main', 'Row');
+CALL CreateSeat('C', 10);
+-- Error Code: 1364. Field 'SeatID' doesn't have a default value
+-- If a seat already exists then proper error message displayed
+
 -- CreateSponsor
-CALL CreateSponsor('DonorCorp', 'donate@corp.com');
-CALL CreateSponsor(NULL, NULL);
-CALL CreateSponsor('', 'email@domain.com');
-CALL CreateSponsor('Valid Sponsor', NULL);
-CALL CreateSponsor(NULL, 'contact@site.com');
+CALL CreateSponsor('DonorCorp', 'I');
+-- Use in_type != C or in_type != I for proper error message
+-- The enum provides a truncated error if in_type not in enum rather than proper error message
+
 -- CreateTicket
-CALL CreateTicket(2, 1, 30.00);
-CALL CreateTicket(NULL, NULL, NULL);
-CALL CreateTicket(NULL, 1, 20.00);
-CALL CreateTicket(1, NULL, 20.00);
-CALL CreateTicket(1, 1, -5.00);
-CALL CreateTicket(1, 1, 'price');
+CALL CreateTicket(1, 1, 30.00, '2025-06-01');
+-- Day has off by one error 10 shows up as 9
+
 -- DeleteDuesRecord
 CALL DeleteDuesRecord(1);
-CALL DeleteDuesRecord(NULL);
-CALL DeleteDuesRecord('A');
-CALL DeleteDuesRecord(9999);
--- DeleteMeeting
+-- double check that when a due is deleted the amount is added back to due owed
+
+-- (Working) DeleteMeeting
 CALL DeleteMeeting(1);
-CALL DeleteMeeting(NULL);
-CALL DeleteMeeting('A');
-CALL DeleteMeeting(9999);
--- DeleteMember
-CALL DeleteMember(2);
-CALL DeleteMember(NULL);
-CALL DeleteMember('A');
-CALL DeleteMember(9999);
--- DeletePatron
+
+-- (Working) DeleteMember
+CALL DeleteMember(1);
+
+-- (Working) DeletePatron
 CALL DeletePatron(1);
-CALL DeletePatron(NULL);
-CALL DeletePatron('A');
-CALL DeletePatron(9999);
+
 -- DeletePlay
 CALL DeletePlay(1);
-CALL DeletePlay(NULL);
-CALL DeletePlay('A');
-CALL DeletePlay(9999);
--- DeleteProduction
+-- Once production_play table is fixed check that this deletion cascades.
+
+-- (Working) DeleteProduction
 CALL DeleteProduction(1);
-CALL DeleteProduction(NULL);
-CALL DeleteProduction('A');
-CALL DeleteProduction(9999);
--- DeleteSeat
+
+-- (Working) DeleteSeat
 CALL DeleteSeat(1);
-CALL DeleteSeat(NULL);
-CALL DeleteSeat('A');
-CALL DeleteSeat(9999);
--- DeleteSponsor
+
+-- (Working) DeleteSponsor
 CALL DeleteSponsor(1);
-CALL DeleteSponsor(NULL);
-CALL DeleteSponsor('A');
-CALL DeleteSponsor(9999);
--- LinkSponsorToProduction
+
+-- (Working) LinkSponsorToProduction
 CALL LinkSponsorToProduction(1, 1, 250.00);
-CALL LinkSponsorToProduction(1, 1, -100.00);
-CALL LinkSponsorToProduction(1, 1, 0);
-CALL LinkSponsorToProduction(NULL, 1, 250);
-CALL LinkSponsorToProduction(1, NULL, 250);
--- ListTicketsForProduction
+
+-- (Working) ListTicketsForProduction
 CALL ListTicketsForProduction(1);
-CALL ListTicketsForProduction(NULL);
-CALL ListTicketsForProduction('A');
-CALL ListTicketsForProduction(9999);
+
 -- PurchaseTicket
-CALL PurchaseTicket(1, 1, 25.00);
-CALL PurchaseTicket(2, 1, 99999.99);
-CALL PurchaseTicket(2, 1, 0);
-CALL PurchaseTicket(2, 1, -10);
-CALL PurchaseTicket(2, 9999, 25.00);
-CALL PurchaseTicket(9999, 1, 25.00);
--- ReleaseTicket
+CALL PurchaseTicket(1, 1, NULL, 25.00);
+-- Can purchase ticket multiple times
+
+-- (Working) ReleaseTicket
 CALL ReleaseTicket(1);
-CALL ReleaseTicket(NULL);
-CALL ReleaseTicket('A');
-CALL ReleaseTicket(9999);
--- RemoveMemberFromMeeting
+
+-- (Working) RemoveMemberFromMeeting
 CALL RemoveMemberFromMeeting(1, 1);
-CALL RemoveMemberFromMeeting(1, NULL);
-CALL RemoveMemberFromMeeting(NULL, 1);
-CALL RemoveMemberFromMeeting(9999, 9999);
--- RemoveMemberFromProduction
-CALL RemoveMemberFromProduction(2, 1, 'Stage Crew');
-CALL RemoveMemberFromProduction(1, 1, 'Actor');
-CALL RemoveMemberFromProduction(1, 1, NULL);
-CALL RemoveMemberFromProduction(NULL, 1, 'Crew');
-CALL RemoveMemberFromProduction(9999, 1, 'Crew');
+
+-- (Working) RemoveMemberFromProduction
+CALL RemoveMemberFromProduction(1, 1);
+
 -- ReserveTicket
-CALL ReserveTicket(2, 1);
-CALL ReserveTicket(1, 1);
-CALL ReserveTicket(NULL, 1);
-CALL ReserveTicket(1, NULL);
-CALL ReserveTicket(9999, 9999);
--- SmartTicketPurchase
-CALL SmartTicketPurchase(1, 1);
-CALL SmartTicketPurchase(NULL, 1);
-CALL SmartTicketPurchase(1, NULL);
-CALL SmartTicketPurchase(9999, 9999);
+CALL ReserveTicket(2, 1, '2025-06-01');
+-- Day has off by one error 10 shows up as 9
+
+-- SmartTicketPurchase (gonna delete and integrate suggest alternate seat into purchase ticket)
+
 -- SuggestAlternateSeats
-CALL SuggestAlternateSeats(1);
-CALL SuggestAlternateSeats(NULL);
-CALL SuggestAlternateSeats('A');
-CALL SuggestAlternateSeats(9999);
--- UndoDuesInstallment
+CALL SuggestAlternateSeats(1,1);
+-- returns an empty table 
+
+-- (Working) UndoDuesInstallment
 CALL UndoDuesInstallment(1);
-CALL UndoDuesInstallment(NULL);
-CALL UndoDuesInstallment('A');
-CALL UndoDuesInstallment(9999);
+
 -- UndoPlayFromProduction
 CALL UndoPlayFromProduction(1, 1);
-CALL UndoPlayFromProduction(NULL, 1);
-CALL UndoPlayFromProduction(1, NULL);
-CALL UndoPlayFromProduction(9999, 9999);
+-- Once play_production table working test this
+
 -- UndoProductionExpense
 CALL UndoProductionExpense(1);
-CALL UndoProductionExpense(NULL);
-CALL UndoProductionExpense('A');
-CALL UndoProductionExpense(9999);
--- UndoTicketPurchase
+-- Change error message to not have 'or ...'
+-- Also change function name in all three files to just UndoExpense (not production specific uses TransactionID)
+
+-- (Working) UndoTicketPurchase
 CALL UndoTicketPurchase(1);
-CALL UndoTicketPurchase(NULL);
-CALL UndoTicketPurchase('A');
-CALL UndoTicketPurchase(9999);
--- UnlinkSponsorFromProduction
+
+-- (Working) UnlinkSponsorFromProduction
 CALL UnlinkSponsorFromProduction(1, 1);
-CALL UnlinkSponsorFromProduction(NULL, 1);
-CALL UnlinkSponsorFromProduction(1, NULL);
-CALL UnlinkSponsorFromProduction(9999, 9999);
+
 -- UpdateMeeting
-CALL UpdateMeeting(1, 'Final Prep', '2024-10-20');
-CALL UpdateMeeting(NULL, 'Updated', '2024-12-15');
-CALL UpdateMeeting(1, '', '2024-12-15');
-CALL UpdateMeeting(1, 'Meeting', NULL);
-CALL UpdateMeeting(9999, 'Ghost', '2024-12-15');
--- UpdateMember
-CALL UpdateMember(1, 'Alice Final', 'afinal@example.com', '888-888-8888');
-CALL UpdateMember(NULL, 'Name', 'email', 'phone');
-CALL UpdateMember(1, '', 'email', 'phone');
-CALL UpdateMember(1, 'Name', '', 'phone');
-CALL UpdateMember(1, 'Name', 'email', '');
-CALL UpdateMember(9999, 'Ghost', 'email', 'phone');
--- UpdatePatron
-CALL UpdatePatron(1, 'Charlie New', 'new@charlie.com');
-CALL UpdatePatron(NULL, 'Name', 'email');
-CALL UpdatePatron(1, '', 'email');
-CALL UpdatePatron(1, 'Name', '');
-CALL UpdatePatron(9999, 'Ghost', 'email');
--- UpdatePlay
-CALL UpdatePlay(1, 'Hamlet Final', 'Final version');
-CALL UpdatePlay(1, REPEAT('A', 1000), REPEAT('A', 1000));
-CALL UpdatePlay(1, '', '');
-CALL UpdatePlay(9999, '', '');
-CALL UpdatePlay(1, NULL, NULL);
+CALL UpdateMeeting(1, 'F', '2025-10-20');
+-- Day has off by one error 10 shows up as 9
+
+-- (Working) UpdateMember
+CALL UpdateMember(1, 'Alice Final', 'afinal@example.com', '888-888-8888', 'Address', 'Role');
+
+-- (Working) UpdatePatron
+CALL UpdatePatron(1, 'Charlie New', 'new@charlie.com', 'Address');
+
+-- (Working) UpdatePlay
+CALL UpdatePlay(1, 'Hamlet Final', 'Author', 'Genre', 1, 100);
+
 -- UpdateProduction
-CALL UpdateProduction(1, 'Fall Updated', '2024-10-05', '2024-12-10');
-CALL UpdateProduction(NULL, 'Title', '2024-01-01', '2024-02-01');
-CALL UpdateProduction(1, '', '2024-01-01', '2024-02-01');
-CALL UpdateProduction(1, 'Title', NULL, '2024-02-01');
-CALL UpdateProduction(1, 'Title', '2024-02-01', NULL);
-CALL UpdateProduction(9999, 'Ghost', '2024-01-01', '2024-02-01');
+CALL UpdateProduction(1, '2024-12-10');
+-- Day has off by one error 10 shows up as 9
+
 -- UpdateSeat
-CALL UpdateSeat(2, 'C1-updated', 'Upper', 3);
-CALL UpdateSeat(NULL, 'A1', 'Main', 1);
-CALL UpdateSeat(1, '', 'Main', 1);
-CALL UpdateSeat(1, 'A1', '', 1);
-CALL UpdateSeat(1, 'A1', 'Main', NULL);
-CALL UpdateSeat(9999, 'Ghost', 'Zone', 1);
+CALL UpdateSeat(2, 'C', 3);
+-- Seat ID should be auto_increment
+
 -- UpdateSponsor
-CALL UpdateSponsor(1, 'Trust Updated', 'new@trust.org');
-CALL UpdateSponsor(NULL, 'Name', 'email');
-CALL UpdateSponsor(1, '', 'email');
-CALL UpdateSponsor(1, 'Name', '');
-CALL UpdateSponsor(9999, 'Ghost', 'email');
--- UpdateTicketPrice
+CALL UpdateSponsor(1, 'Trust Updated', 'C');
+-- change away from enum for proper error messaging
+
+-- (Working) UpdateTicketPrice
 CALL UpdateTicketPrice(1, 35.00);
-CALL UpdateTicketPrice(NULL, 25.00);
-CALL UpdateTicketPrice(1, -5.00);
-CALL UpdateTicketPrice(9999, 25.00);
+
 -- UpdateTicketStatus
-CALL UpdateTicketStatus(1, 'Sold');
-CALL UpdateTicketStatus(NULL, 'Reserved');
-CALL UpdateTicketStatus(1, '');
-CALL UpdateTicketStatus(9999, 'Reserved');
+CALL UpdateTicketStatus(1, 'S');
+-- change away from enum for proper error messaging
 
 -- REPORT TESTS
--- GetPlayListingReport
+-- (Working) GetPlayListingReport
 CALL GetPlayListingReport();
--- GetMemberDuesReport
+
+-- (Working) GetMemberDuesReport
 CALL GetMemberDuesReport();
--- GetPatronReport
+
+-- (Working) GetPatronReport
 CALL GetPatronReport(1);
-CALL GetPatronReport(NULL);
-CALL GetPatronReport('A');
-CALL GetPatronReport(9999);
--- GetTicketSalesReport
+
+-- (Working) GetTicketSalesReport
 CALL GetTicketSalesReport(1);
-CALL GetTicketSalesReport(NULL);
-CALL GetTicketSalesReport('A');
-CALL GetTicketSalesReport(9999);
--- GetMemberParticipation
+
+-- (Working) GetMemberParticipation
 CALL GetMemberParticipation(1);
-CALL GetMemberParticipation(NULL);
-CALL GetMemberParticipation('A');
-CALL GetMemberParticipation(9999);
--- GetProductionFinancialSummary
-CALL GetProductionFinancialSummary(1);
-CALL GetProductionFinancialSummary(NULL);
-CALL GetProductionFinancialSummary('A');
-CALL GetProductionFinancialSummary(9999);
--- GetProductionCastAndCrew
+
+-- (Working) GetProductionFinancialSummary (params are additional search features)
+CALL GetProductionFinancialSummary(NULL, NULL, NULL);
+
+-- (Working) GetProductionCastAndCrew
 CALL GetProductionCastAndCrew(1);
-CALL GetProductionCastAndCrew(NULL);
-CALL GetProductionCastAndCrew('A');
-CALL GetProductionCastAndCrew(9999);
--- GetProductionSponsors
+
+-- (Working) GetProductionSponsors
 CALL GetProductionSponsors(1);
-CALL GetProductionSponsors(NULL);
-CALL GetProductionSponsors('A');
-CALL GetProductionSponsors(9999);
+-- maybe add a way to see what sponsors currently only $ amounts
 
 -- TRIGGER TESTS
 -- Trigger: trg_AddPlayCostTransaction
@@ -334,7 +224,7 @@ DELETE FROM Production_Play WHERE Play_ID = 1 AND Production_ID = 1;
 -- Trigger: trg_SponsorContributionIncomeOnInsert
 INSERT INTO Sponsor_Contribution (Sponsor_ID, Production_ID, Amount) VALUES (1, 1, 300.00);
 
--- FUNCTION TEST
+-- FUNCTION TEST (Cant call a function like this idk how to do it)
 CALL GetTotalPaidForDues(1);
 CALL GetTotalPaidForDues(NULL);
 CALL GetTotalPaidForDues('A');

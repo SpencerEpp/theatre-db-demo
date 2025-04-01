@@ -22,3 +22,10 @@ Currently known errors:
   spent like 3hrs on it.
 - Calculated field in production doesnt work.
 - Trigger to update total cost in production doesnt work.
+- SmartTicketPurchase has a syntax error. (I dont think we need this just add the alternate seats procedure to the purchase ticket procedure)
+
+
+- Prevent duplicate plays, auto increment allows for same to be added with different id
+   (applies to all create... procedures)
+
+- to erd in the ticket table add reservation deadline
