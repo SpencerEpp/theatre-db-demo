@@ -11,8 +11,6 @@
 - Note: Railway Server is in different timezone so web interface shows different time but query shows correct time. (Weird)
 
 Currently known errors:
-- Calculated field in production doesnt work.
-- Trigger to update total cost in production doesnt work.
 - Add the SmartTicketPurchase to purchase table Note: SmartTicketPurchase doesnt work.
 
 -- Smart multi-seat ticket purchase with fall back support

@@ -10,6 +10,9 @@
 -- ========================================================================================
 DROP TRIGGER IF EXISTS trg_AddPlayCostTransaction;
 DROP TRIGGER IF EXISTS trg_NullifyPlayCostTransaction;
+DROP TRIGGER IF EXISTS trg_IncrementTotalCost;
+DROP TRIGGER IF EXISTS trg_DecrementTotalCost;
+DROP TRIGGER IF EXISTS trg_DecrementTotalCostOnPlayDelete;
 DROP TRIGGER IF EXISTS trg_AutoTransactionOnDuesPayment;
 DROP TRIGGER IF EXISTS trg_BeforeDelete_DuesPayment;
 DROP TRIGGER IF EXISTS trg_TicketPurchaseTransaction;
@@ -126,17 +129,8 @@ CREATE TABLE Play (
 -- Creating the Production table
 CREATE TABLE Production (
     ProductionID INT PRIMARY KEY AUTO_INCREMENT,
-    ProductionDate DATE NOT NULL -- ,
---    TotalCost DECIMAL(12,2) GENERATED ALWAYS AS (
---         (SELECT COALESCE(SUM(p.Cost), 0)
---          FROM Production_Play pp
---          JOIN Play p ON pp.PlayID = p.PlayID
---          WHERE pp.ProductionID = Production.ProductionID)
---         + 
---         (SELECT COALESCE(SUM(ft.Amount), 0)
---          FROM Financial_Transaction ft
---          WHERE ft.ProductionID = Production.ProductionID AND ft.Type = 'E' AND ft.PlayID IS NULL)
---     ) STORED
+    ProductionDate DATE NOT NULL,
+    TotalCost DECIMAL(12,2) DEFAULT 0
 );
 
 -- Creating the Production_Play table for M:N relationship
@@ -2391,19 +2385,65 @@ END //
 DELIMITER ;
 
 -- This trigger automatically updates the total cost of a production when a play is added to it
--- DELIMITER //
--- CREATE TRIGGER trg_AddPlayCostTransaction
--- AFTER INSERT ON Production_Play
--- FOR EACH ROW
--- BEGIN
---     DECLARE playCost DECIMAL(12,2);
---     SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
+DELIMITER //
+CREATE TRIGGER trg_IncrementTotalCost 
+AFTER INSERT ON Production_Play
+FOR EACH ROW
+BEGIN
+    DECLARE playCost DECIMAL(12,2);
+    SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
 
---     INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description) 
---     VALUES ('E', playCost, CURRENT_DATE, NEW.ProductionID, CONCAT('Base licensing cost for play added to production')
---     );
--- END //
--- DELIMITER ;
+    IF playCost IS NOT NULL THEN
+        UPDATE Production
+        SET TotalCost = TotalCost + playCost
+        WHERE ProductionID = NEW.ProductionID;
+    END IF;
+END //
+DELIMITER ;
+
+-- This trigger automatically updates the total cost of a production when a play relationship is removed
+DELIMITER //
+CREATE TRIGGER trg_DecrementTotalCost
+AFTER DELETE ON Production_Play
+FOR EACH ROW
+BEGIN
+    DECLARE playCost DECIMAL(12,2);
+    SELECT Cost INTO playCost FROM Play WHERE PlayID = OLD.PlayID;
+
+    IF playCost IS NOT NULL THEN
+        UPDATE Production
+        SET TotalCost = GREATEST(TotalCost - playCost, 0)
+        WHERE ProductionID = OLD.ProductionID;
+    END IF;
+END //
+DELIMITER ;
+
+-- This trigger automatically updates the total cost of a production when a play is deleted
+DELIMITER //
+CREATE TRIGGER trg_DecrementTotalCostOnPlayDelete
+BEFORE DELETE ON Play
+FOR EACH ROW
+BEGIN
+    DECLARE prodID INT;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE cur CURSOR FOR 
+        SELECT ProductionID FROM Production_Play WHERE PlayID = OLD.PlayID;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO prodID;
+        IF done THEN 
+            LEAVE read_loop;
+        END IF;
+
+        UPDATE Production
+        SET TotalCost = GREATEST(TotalCost - OLD.Cost, 0)
+        WHERE ProductionID = prodID;
+    END LOOP;
+    CLOSE cur;
+END //
+DELIMITER ;
 
 -- Trigger: Automatically create transaction on dues payment
 DELIMITER //
