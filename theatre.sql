@@ -2338,6 +2338,98 @@ BEGIN
 END //
 DELIMITER ;
 
+DELIMITER //
+CREATE PROCEDURE SmartTicketPurchase(
+    IN in_ProductionID INT,
+    IN in_PatronID INT,        -- Can be NULL (public buyer)
+    IN in_SeatIDs TEXT,        -- e.g., '[1,2,3]'
+    IN in_Deadline DATE,
+    IN in_Price DECIMAL(6,2)
+)
+BEGIN
+    -- All declarations must appear at the beginning of the procedure
+    DECLARE seat_id INT;
+    DECLARE ticket_id INT DEFAULT NULL;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE seat_cursor CURSOR FOR 
+        SELECT CAST(value AS UNSIGNED) 
+        FROM JSON_TABLE(in_SeatIDs, '$[*]' COLUMNS(value INT PATH '$')) AS jt;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Now start executable code
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    
+    IF in_PatronID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Patron WHERE PatronID = in_PatronID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+    
+    IF in_SeatIDs IS NULL OR JSON_LENGTH(in_SeatIDs) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'At least one seat must be selected';
+    END IF;
+    
+    IF in_Price IS NULL OR in_Price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Price must be a non-negative value';
+    END IF;
+
+    -- Setup temporary error table
+    DROP TEMPORARY TABLE IF EXISTS TempErrors;
+    CREATE TEMPORARY TABLE TempErrors (
+        Message VARCHAR(255)
+    );
+
+    OPEN seat_cursor;
+    seat_loop: LOOP
+        FETCH seat_cursor INTO seat_id;
+        IF done THEN 
+            LEAVE seat_loop; 
+        END IF;
+
+        SET ticket_id = (
+            SELECT TicketID
+            FROM Ticket
+            WHERE ProductionID = in_ProductionID 
+              AND SeatID = seat_id 
+              AND Status = 'A'
+            LIMIT 1
+        );
+
+        IF ticket_id IS NOT NULL THEN
+            UPDATE Ticket
+            SET PatronID = in_PatronID,
+                Price = in_Price,
+                Status = 'S',
+                ReservationDeadline = in_Deadline
+            WHERE TicketID = ticket_id;
+
+            INSERT INTO Financial_Transaction 
+                (Type, Amount, Date, TicketID, ProductionID, Description)
+            VALUES ('I', in_Price, CURRENT_DATE, ticket_id, in_ProductionID, 'Smart Ticket Purchase');
+        ELSE
+            INSERT INTO TempErrors (Message)
+            VALUES (CONCAT('Seat ID ', seat_id, ' is not available or already sold/reserved.'));
+        END IF;
+    END LOOP;
+    CLOSE seat_cursor;
+
+    SELECT * FROM TempErrors;
+END //
+DELIMITER ;
+
+
+
 -- ========================================================================================
 -- Triggers
 -- ========================================================================================
