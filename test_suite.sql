@@ -180,7 +180,7 @@ CALL UpdateSeat(2, 'C', 3);
 
 -- (Working) GetProductionSponsors
 CALL GetProductionSponsors(1);
--- maybe add a way to see what sponsors currently only $ amounts
+-- Change name to GetProductionSponsorTotal
 
 -- TRIGGER TESTS (Working, but double check)
 -- Trigger: trg_AddPlayCostTransaction
