@@ -9,9 +9,8 @@
 -- (Working) AddDuesInstallment
 -- CALL AddDuesInstallment(1, '2025-10-01', 50.00);
 
--- AddPlayToProduction
-CALL AddPlayToProduction(1, 1);
--- Same error outlined in todo 
+-- (Working) AddPlayToProduction
+-- CALL AddPlayToProduction(1, 1);
 
 -- (Working) AddProductionExpense
 -- CALL AddProductionExpense(200.00, '2025-10-01', 1, 'Description');
@@ -70,9 +69,8 @@ CALL CreateSeat('C', 10);
 -- (Working) DeletePatron
 -- CALL DeletePatron(1);
 
--- DeletePlay
-CALL DeletePlay(1);
--- Once production_play table is fixed check that this deletion cascades.
+-- (Working) DeletePlay
+-- CALL DeletePlay(1);
 
 -- (Working) DeleteProduction
 -- CALL DeleteProduction(1);
@@ -113,9 +111,8 @@ CALL SuggestAlternateSeats(1,1);
 -- (Working) UndoDuesInstallment
 -- CALL UndoDuesInstallment(1);
 
--- UndoPlayFromProduction
-CALL UndoPlayFromProduction(1, 1);
--- Once play_production table working test this
+-- (Working) UndoPlayFromProduction
+-- CALL UndoPlayFromProduction(1, 1);
 
 -- UndoProductionExpense
 CALL UndoProductionExpense(1);
@@ -178,11 +175,10 @@ CALL UpdateSeat(2, 'C', 3);
 -- (Working) GetProductionCastAndCrew
 -- CALL GetProductionCastAndCrew(1);
 
--- (Working) GetProductionSponsors
-CALL GetProductionSponsors(1);
--- Change name to GetProductionSponsorTotal
+-- (Working) GetProductionSponsorTotal
+-- CALL GetProductionSponsorTotal(1);
 
--- TRIGGER TESTS (Working, but double check)
+-- TRIGGER TESTS (Working, but double check, list needs to be updated but I believe they all work, testing as I go)
 -- Trigger: trg_AddPlayCostTransaction
 -- INSERT INTO Production_Play (Play_ID, Production_ID) VALUES (1, 1);
 -- Trigger: trg_AutoTransactionOnDuesPayment

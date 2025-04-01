@@ -11,10 +11,6 @@
 - Note: Railway Server is in different timezone so web interface shows different time but query shows correct time. (Weird)
 
 Currently known errors:
-- During csv import only production_play table isn't populated, this error extents to AddPlayToProduction, 
-  the error: Unknown column 'PlayID' in 'feild list' - yet the csv is correct, the loading code is correct 
-  and the correct table with the correct column exists in the db, tbh I'm at a loss with this error I've 
-  spent like 3hrs on it.
 - Calculated field in production doesnt work.
 - Trigger to update total cost in production doesnt work.
 - Add the SmartTicketPurchase to purchase table Note: SmartTicketPurchase doesnt work.

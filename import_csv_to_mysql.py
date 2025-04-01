@@ -10,9 +10,8 @@ db_config = {
     'port': int(os.getenv('MYSQLPORT', 3306))
 }
 
-csv_dir = "csv_data"  # Folder where your CSVs live (relative to project root)
+csv_dir = "csv_data"  # Folder where CSVs live (relative to project root)
 
-# Define expected columns for each table
 table_columns = {
     "Play": ["PlayID", "Title", "Author", "Genre", "NumberOfActs", "Cost"],
     "Production": ["ProductionID", "ProductionDate"],

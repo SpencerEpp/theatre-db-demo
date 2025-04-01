@@ -9,6 +9,7 @@
 -- Setup (Drop everything cleanly)
 -- ========================================================================================
 DROP TRIGGER IF EXISTS trg_AddPlayCostTransaction;
+DROP TRIGGER IF EXISTS trg_NullifyPlayCostTransaction;
 DROP TRIGGER IF EXISTS trg_AutoTransactionOnDuesPayment;
 DROP TRIGGER IF EXISTS trg_BeforeDelete_DuesPayment;
 DROP TRIGGER IF EXISTS trg_TicketPurchaseTransaction;
@@ -71,7 +72,7 @@ DROP PROCEDURE IF EXISTS GetMemberParticipation;
 DROP PROCEDURE IF EXISTS GetProductionFinancialSummary;
 DROP PROCEDURE IF EXISTS GetPlayListingReport;
 DROP PROCEDURE IF EXISTS GetProductionCastAndCrew;
-DROP PROCEDURE IF EXISTS GetProductionSponsors;
+DROP PROCEDURE IF EXISTS GetProductionSponsorTotal;
 DROP PROCEDURE IF EXISTS GetPatronReport;
 DROP PROCEDURE IF EXISTS GetTicketSalesReport;
 DROP PROCEDURE IF EXISTS GetMemberDuesReport;
@@ -259,10 +260,12 @@ CREATE TABLE Financial_Transaction (
     TicketID INT NULL,
     SponsorID INT NULL,
     ProductionID INT NULL,
+    PlayID INT NULL,
     FOREIGN KEY (DuesPaymentID) REFERENCES DuesPayment(PaymentID) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (TicketID) REFERENCES Ticket(TicketID) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (SponsorID) REFERENCES Sponsor(SponsorID) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (ProductionID) REFERENCES Production(ProductionID) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (ProductionID) REFERENCES Production(ProductionID) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (PlayID) REFERENCES Play(PlayID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- ========================================================================================
@@ -2166,7 +2169,7 @@ DELIMITER ;
 
 -- Program - Sponsors
 DELIMITER //
-CREATE PROCEDURE GetProductionSponsors(IN in_ProductionID INT)
+CREATE PROCEDURE GetProductionSponsorTotal(IN in_ProductionID INT)
 BEGIN
     -- Validation
     IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
@@ -2344,9 +2347,38 @@ AFTER INSERT ON Production_Play
 FOR EACH ROW
 BEGIN
     DECLARE playCost DECIMAL(12,2);
-    SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
-    INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, PlayID)
-    VALUES ('E', playCost, CURRENT_DATE, NEW.ProductionID, NEW.PlayID);
+    DECLARE descText VARCHAR(255);
+    
+    -- Only do the insert if the Play exists
+    IF EXISTS (SELECT 1 FROM Play WHERE PlayID = NEW.PlayID) THEN
+        SELECT Cost INTO playCost FROM Play WHERE PlayID = NEW.PlayID;
+        
+        -- Only insert if the cost isn't null (just in case)
+        IF playCost IS NOT NULL THEN
+            SET descText = CONCAT('Added PlayID ', NEW.PlayID, ' to ProductionID ', NEW.ProductionID);
+            INSERT INTO Financial_Transaction (Type, Amount, Date, Description, ProductionID, PlayID)
+            VALUES ('E', playCost, CURRENT_DATE, descText, NEW.ProductionID, NEW.PlayID);
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger: Automatically nullify PlayID and ProductionID if record was removed from Production_Play
+DELIMITER //
+CREATE TRIGGER trg_NullifyPlayCostTransaction
+BEFORE DELETE ON Production_Play
+FOR EACH ROW
+BEGIN
+    -- Update Financial_Transaction to nullify the links, preserving the record
+    UPDATE Financial_Transaction
+    SET 
+        PlayID = NULL,
+        ProductionID = NULL,
+        Description = CONCAT('Unlinked: was PlayID ', OLD.PlayID, ', ProductionID ', OLD.ProductionID)
+    WHERE 
+        PlayID = OLD.PlayID AND
+        ProductionID = OLD.ProductionID AND
+        Type = 'E'; -- optional: only touch expense entries
 END //
 DELIMITER ;
 

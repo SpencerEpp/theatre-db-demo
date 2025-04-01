@@ -284,7 +284,7 @@ def procedure():
         "GetProductionCastAndCrew": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
-        "GetProductionSponsors": lambda: [
+        "GetProductionSponsorTotal": lambda: [
             int(sanitize_input(request.form['ProductionID']))
         ],
         "GetPatronReport": lambda: [
