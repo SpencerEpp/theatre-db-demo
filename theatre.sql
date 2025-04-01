@@ -87,6 +87,7 @@ DROP VIEW IF EXISTS vw_ProductionBalanceSheet;
 DROP VIEW IF EXISTS vw_TicketSummary;
 
 DROP FUNCTION IF EXISTS GetTotalDueForDues;
+DROP FUNCTION IF EXISTS GetTotalPaidForDues;
 
 -- This is to purge all tables therefore foreign keys dont matter
 SET FOREIGN_KEY_CHECKS = 0;
@@ -188,7 +189,7 @@ CREATE TABLE DuesPayment (
 CREATE TABLE Sponsor (
     SponsorID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(255) NOT NULL,
-    Type ENUM('C', 'I') NOT NULL -- ‘C’ for company, ‘I’ for individual 
+    Type CHAR(1) NOT NULL -- ‘C’ for company, ‘I’ for individual 
 );
 
 -- Creating the Production_Sponsor table for M:N relationship
@@ -223,7 +224,7 @@ CREATE TABLE Ticket (
     PatronID INT NULL, -- NULL if unassigned or released
     SeatID INT NOT NULL,
     Price DECIMAL(6,2) NOT NULL,
-    Status ENUM('S', 'A') NOT NULL, -- ‘S’ for sold, ‘A’ for avalible
+    Status CHAR(1) NOT NULL, -- ‘S’ for sold, ‘A’ for avalible
     ReservationDeadline DATE NULL,
     FOREIGN KEY (ProductionID) REFERENCES Production(ProductionID) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (PatronID) REFERENCES Patron(PatronID) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -234,7 +235,7 @@ CREATE TABLE Ticket (
 -- Creating the Meeting table
 CREATE TABLE Meeting (
     MeetingID INT PRIMARY KEY AUTO_INCREMENT,
-    Type ENUM('F', 'S') NOT NULL,
+    Type CHAR(1) NOT NULL, -- ‘F’ for Fall, ‘S’ for Spring
     Date DATE NOT NULL
 );
 
@@ -250,7 +251,7 @@ CREATE TABLE Member_Meeting (
 -- Creating the Financial_Transaction table
 CREATE TABLE Financial_Transaction (
     TransactionID INT PRIMARY KEY AUTO_INCREMENT,
-    Type ENUM('I', 'E') NOT NULL, -- 'I' for Income, 'E' for Expense
+    Type CHAR(1) NOT NULL, -- 'I' for Income, 'E' for Expense
     Amount DECIMAL(12,2) NOT NULL,
     Date DATE NOT NULL,
     Description VARCHAR(255) NULL,
@@ -873,7 +874,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE UpdateTicketStatus (
     IN in_TicketID INT,
-    IN in_Status ENUM('S', 'A')
+    IN in_Status CHAR(1)
 )
 BEGIN
     -- Validation
@@ -959,7 +960,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE CreateSponsor (
     IN in_Name VARCHAR(255),
-    IN in_Type ENUM('C', 'I') -- C = Company, I = Individual
+    IN in_Type CHAR(1) -- C = Company, I = Individual
 )
 BEGIN
     -- Validation
@@ -987,7 +988,7 @@ DELIMITER //
 CREATE PROCEDURE UpdateSponsor (
     IN in_SponsorID INT,
     IN in_Name VARCHAR(255),
-    IN in_Type ENUM('C', 'I')
+    IN in_Type CHAR(1)
 )
 BEGIN
     -- Validation
@@ -1157,7 +1158,7 @@ DELIMITER ;
 -- CREATE MEETING
 DELIMITER //
 CREATE PROCEDURE CreateMeeting (
-    IN in_Type ENUM('F', 'S'), -- F = Fall, S = Spring
+    IN in_Type CHAR(1), -- F = Fall, S = Spring
     IN in_Date DATE
 )
 BEGIN
@@ -1185,7 +1186,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE UpdateMeeting (
     IN in_MeetingID INT,
-    IN in_Type ENUM('F', 'S'),
+    IN in_Type CHAR(1),
     IN in_Date DATE
 )
 BEGIN
@@ -1332,9 +1333,9 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'MemberID does not exist';
     END IF;
-    IF in_Year IS NULL OR in_Year < YEAR(CURDATE()) OR in_Year > YEAR(CURDATE()) + 1 THEN
+    IF in_Year IS NULL OR in_Year < YEAR(CURDATE()) THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Dues can only be recorded for the current or next year';
+        SET MESSAGE_TEXT = 'Dues can only be created for the current year or the future';
     END IF;
     IF in_TotalAmount IS NULL OR in_TotalAmount < 0 THEN
         SIGNAL SQLSTATE '45000'
@@ -1407,7 +1408,7 @@ BEGIN
     END IF;
 
     -- Main logic
-    SELECT Status, PatronID, ReservationDeadline
+    SELECT TicketID, Status, PatronID, ReservationDeadline
     FROM Ticket
     WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID;
 END //
@@ -1815,7 +1816,7 @@ CREATE PROCEDURE PurchaseTicket (
 )
 BEGIN
     DECLARE ticketID INT;
-    DECLARE currentStatus ENUM('S','A');
+    DECLARE currentStatus CHAR(1);
     DECLARE currentPatronID INT;
     DECLARE reservationDeadline DATE;
 
