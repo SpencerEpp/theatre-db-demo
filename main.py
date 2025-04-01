@@ -253,7 +253,7 @@ def procedure():
             int(sanitize_input(request.form['ProductionID'])),
             sanitize_input(request.form['Description'])
         ],
-        "UndoProductionExpense": lambda: [
+        "UndoExpense": lambda: [
             int(sanitize_input(request.form['TransactionID']))
         ],
         "AddDuesInstallment": lambda: [

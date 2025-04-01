@@ -114,10 +114,8 @@ CALL SuggestAlternateSeats(1,1);
 -- (Working) UndoPlayFromProduction
 -- CALL UndoPlayFromProduction(1, 1);
 
--- UndoProductionExpense
-CALL UndoProductionExpense(1);
--- Change error message to not have 'or ...'
--- Also change function name in all three files to just UndoExpense (not production specific uses TransactionID)
+-- (Working) UndoExpense
+-- CALL UndoExpense(1);
 
 -- (Working) UndoTicketPurchase
 -- CALL UndoTicketPurchase(1);
