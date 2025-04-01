@@ -46,10 +46,8 @@
 -- (Working) CreateProduction
 -- CALL CreateProduction('2025-06-01');
 
--- CreateSeat
-CALL CreateSeat('C', 10);
--- Error Code: 1364. Field 'SeatID' doesn't have a default value
--- If a seat already exists then proper error message displayed
+-- (Working) CreateSeat
+-- CALL CreateSeat('C', 10);
 
 -- (Working) CreateSponsor
 -- CALL CreateSponsor('DonorCorp', 'I');
@@ -103,10 +101,8 @@ CALL PurchaseTicket(1, 1, NULL, 25.00);
 -- (Working) ReserveTicket
 -- CALL ReserveTicket(2, 1, '2025-06-01');
 
--- SuggestAlternateSeats
-CALL SuggestAlternateSeats(1,1);
--- returns an empty table, should be added to purchase ticket if ticket isnt avalible 
--- should return the ticketID as well idk if it do cuz empty table.
+-- (Working) SuggestAlternateSeats
+-- CALL SuggestAlternateSeats(1,1);
 
 -- (Working) UndoDuesInstallment
 -- CALL UndoDuesInstallment(1);
@@ -138,9 +134,8 @@ CALL SuggestAlternateSeats(1,1);
 -- (Working) UpdateProduction
 -- CALL UpdateProduction(1, '2024-12-10');
 
--- UpdateSeat
-CALL UpdateSeat(2, 'C', 3);
--- Seat ID should be auto_increment
+-- (Working) UpdateSeat
+-- CALL UpdateSeat(2, 'C', 3);
 
 -- (Working) UpdateSponsor
 -- CALL UpdateSponsor(1, 'Trust Updated', 'C');

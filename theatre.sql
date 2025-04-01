@@ -213,7 +213,7 @@ CREATE TABLE Patron (
 
 -- Creating the Seat table (Weak Entity)
 CREATE TABLE Seat (
-    SeatID INT PRIMARY KEY,
+    SeatID INT PRIMARY KEY AUTO_INCREMENT,
     SeatRow CHAR(1) NOT NULL CHECK (SeatRow BETWEEN 'A' AND 'Z'),
     Number TINYINT UNSIGNED NOT NULL CHECK (Number BETWEEN 1 AND 50)
 );
@@ -2325,8 +2325,16 @@ BEGIN
         SET MESSAGE_TEXT = 'Seat count must be a positive integer';
     END IF;
 
+    -- Check availability first
+    IF (SELECT COUNT(*) 
+        FROM Ticket t
+        WHERE t.ProductionID = in_ProductionID AND t.Status = 'A') = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No alternate seats available for this production';
+    END IF;
+
     -- Query
-    SELECT t.SeatID, s.SeatRow, s.Number
+    SELECT t.SeatID, s.SeatRow, s.Number, t.Price
     FROM Ticket t
     JOIN Seat s ON t.SeatID = s.SeatID
     WHERE t.ProductionID = in_ProductionID
