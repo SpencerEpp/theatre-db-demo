@@ -10,6 +10,7 @@
 -- ========================================================================================
 DROP TRIGGER IF EXISTS trg_AddPlayCostTransaction;
 DROP TRIGGER IF EXISTS trg_AutoTransactionOnDuesPayment;
+DROP TRIGGER IF EXISTS trg_BeforeDelete_DuesPayment;
 DROP TRIGGER IF EXISTS trg_TicketPurchaseTransaction;
 DROP TRIGGER IF EXISTS trg_DeleteDuesPaymentTransaction;
 DROP TRIGGER IF EXISTS trg_DeleteTicketTransaction;
@@ -75,7 +76,6 @@ DROP PROCEDURE IF EXISTS GetPatronReport;
 DROP PROCEDURE IF EXISTS GetTicketSalesReport;
 DROP PROCEDURE IF EXISTS GetMemberDuesReport;
 DROP PROCEDURE IF EXISTS SuggestAlternateSeats;
-DROP PROCEDURE IF EXISTS SmartTicketPurchase;
 
 DROP VIEW IF EXISTS vw_PlayListing;
 DROP VIEW IF EXISTS vw_CastCrewByProduction;
@@ -86,7 +86,7 @@ DROP VIEW IF EXISTS vw_MemberDuesStatus;
 DROP VIEW IF EXISTS vw_ProductionBalanceSheet;
 DROP VIEW IF EXISTS vw_TicketSummary;
 
-DROP FUNCTION IF EXISTS GetTotalPaidForDues;
+DROP FUNCTION IF EXISTS GetTotalDueForDues;
 
 -- This is to purge all tables therefore foreign keys dont matter
 SET FOREIGN_KEY_CHECKS = 0;
@@ -115,7 +115,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE Play (
     PlayID INT PRIMARY KEY AUTO_INCREMENT,
     Title VARCHAR(100) NOT NULL,
-    Author VARCHAR(255),
+    Author VARCHAR(255) NOT NULL,
     Genre VARCHAR(100) NOT NULL,
     NumberOfActs TINYINT UNSIGNED NOT NULL,
     Cost DECIMAL(12,2) NOT NULL
@@ -168,7 +168,7 @@ CREATE TABLE Member_Production (
 
 -- Creating the Dues tables to support payment in full or by installment
 CREATE TABLE DuesOwed (
-    DuesID INT PRIMARY KEY AUTO_INCREMENT,
+    DuesID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     MemberID INT NOT NULL,
     Year YEAR NOT NULL,
     TotalDue DECIMAL(6,2) NOT NULL,
@@ -1709,13 +1709,15 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE AddDuesInstallment (
     IN in_MemberID INT,
-    IN in_Year YEAR,
+    IN in_Date DATE,
     IN in_Amount DECIMAL(6,2)
 )
 BEGIN
-    DECLARE existingDuesID INT;
-    DECLARE totalPaid DECIMAL(10,2);
+    DECLARE existingDuesID INT DEFAULT NULL;
     DECLARE totalDue DECIMAL(10,2);
+    DECLARE targetYear YEAR;
+
+    SET targetYear = YEAR(in_Date);
 
     -- Validation
     IF in_MemberID IS NULL OR in_MemberID < 1 THEN
@@ -1726,7 +1728,11 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'MemberID does not exist';
     END IF;
-    IF in_Year IS NULL OR in_Year < YEAR(CURDATE()) OR in_Year > YEAR(CURDATE()) + 1 THEN
+    IF in_Date IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid date is required';
+    END IF;
+    IF targetYear < YEAR(CURDATE()) OR targetYear > YEAR(CURDATE()) + 1 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Year must be the current or next calendar year';
     END IF;
@@ -1735,37 +1741,36 @@ BEGIN
         SET MESSAGE_TEXT = 'Installment amount must be greater than zero';
     END IF;
 
-    -- Check if dues record already exists
+    -- Get DuesID and TotalDue
     SELECT DuesID INTO existingDuesID
     FROM DuesOwed
-    WHERE MemberID = in_MemberID AND Year = in_Year;
+    WHERE MemberID = in_MemberID AND Year = targetYear;
 
-    -- If not, create it with a default total (e.g., $100.00 — customizable)
     IF existingDuesID IS NULL THEN
-        INSERT INTO DuesOwed (MemberID, Year, TotalDue)
-        VALUES (in_MemberID, in_Year, 100.00);
-        SET existingDuesID = LAST_INSERT_ID();
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No dues record found for this member and year';
     END IF;
 
-    -- Get current total paid and total due
-    SET totalPaid = GetTotalPaidForDues(existingDuesID);
-    SELECT TotalDue INTO totalDue
-    FROM DuesOwed
-    WHERE DuesID = existingDuesID;
+    SET totalDue = GetTotalDueForDues(existingDuesID);
 
-    -- Validate: installment must not exceed remaining amount
-    IF totalPaid + in_Amount > totalDue THEN
+    -- Check for overpayment
+    IF in_Amount > totalDue THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Installment exceeds remaining dues for the year';
     END IF;
 
-    -- Record the installment
-    INSERT INTO DuesPayment (DuesID, AmountPaid)
-    VALUES (existingDuesID, in_Amount);
+    -- Subtract from TotalDue (acts as running balance)
+    UPDATE DuesOwed
+    SET TotalDue = TotalDue - in_Amount
+    WHERE DuesID = existingDuesID;
 
-    -- Link to Financial Transaction
+    -- Insert Dues Payment
+    INSERT INTO DuesPayment (DuesID, AmountPaid, PaymentDate)
+    VALUES (existingDuesID, in_Amount, in_Date);
+
+    -- Insert Financial Transaction
     INSERT INTO Financial_Transaction (Type, Amount, Date, DuesPaymentID, Description)
-    VALUES ('I', in_Amount, CURRENT_DATE, LAST_INSERT_ID(), CONCAT('Dues installment for year ', in_Year));
+    VALUES ('I', in_Amount, in_Date, LAST_INSERT_ID(), CONCAT('Dues installment for year ', targetYear));
 END //
 DELIMITER ;
 
@@ -2212,101 +2217,6 @@ BEGIN
 END //
 DELIMITER ;
 
--- Smart multi-seat ticket purchase with fall back support
-DELIMITER //
-CREATE PROCEDURE SmartTicketPurchase(
-    IN in_ProductionID INT,
-    IN in_PatronID INT,        -- Can be NULL (public buyer)
-    IN in_SeatIDs TEXT,        -- e.g., '[1,2,3]'
-    IN in_Deadline DATE,
-    IN in_Price DECIMAL(6,2)
-)
-BEGIN
-    DECLARE seat_id INT;
-    DECLARE ticket_id INT DEFAULT NULL;
-    DECLARE done INT DEFAULT FALSE;
-
-    -- === Validate Inputs ===
-    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Valid ProductionID is required';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'ProductionID does not exist';
-    END IF;
-    -- PatronID may be NULL (public purchase), but if it's given, validate it
-    IF in_PatronID IS NOT NULL AND NOT EXISTS (
-        SELECT 1 FROM Patron WHERE PatronID = in_PatronID
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'PatronID does not exist';
-    END IF;
-    IF in_SeatIDs IS NULL OR JSON_LENGTH(in_SeatIDs) = 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'At least one seat must be selected';
-    END IF;
-    IF in_Price IS NULL OR in_Price < 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Price must be a non-negative value';
-    END IF;
-
-    -- === Cursor Setup ===
-    DECLARE seat_cursor CURSOR FOR 
-        SELECT CAST(value AS UNSIGNED) 
-        FROM JSON_TABLE(in_SeatIDs, '$[*]' COLUMNS(value INT PATH '$')) AS jt;
-
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-
-    -- === Temp error table ===
-    DROP TEMPORARY TABLE IF EXISTS TempErrors;
-    CREATE TEMPORARY TABLE TempErrors (
-        Message VARCHAR(255)
-    );
-
-    -- === Process Each Seat ===
-    OPEN seat_cursor;
-    seat_loop: LOOP
-        FETCH seat_cursor INTO seat_id;
-        IF done THEN LEAVE seat_loop; END IF;
-
-        SET ticket_id = NULL;
-
-        -- Safely try to get the available ticket using a local BEGIN block
-        BEGIN
-            DECLARE CONTINUE HANDLER FOR NOT FOUND SET ticket_id = NULL;
-
-            SELECT TicketID INTO ticket_id
-            FROM Ticket
-            WHERE ProductionID = in_ProductionID AND SeatID = seat_id AND Status = 'A'
-            LIMIT 1;
-        END;
-
-        IF ticket_id IS NOT NULL THEN
-            -- Reserve the ticket
-            UPDATE Ticket
-            SET PatronID = in_PatronID,
-                Price = in_Price,
-                Status = 'S',
-                ReservationDeadline = in_Deadline
-            WHERE TicketID = ticket_id;
-
-            -- Log transaction
-            INSERT INTO Financial_Transaction (Type, Amount, Date, TicketID, ProductionID, Description)
-            VALUES ('I', in_Price, CURRENT_DATE, ticket_id, in_ProductionID, 'Smart Ticket Purchase');
-        ELSE
-            -- Record failure for this seat
-            INSERT INTO TempErrors (Message)
-            VALUES (CONCAT('Seat ID ', seat_id, ' is not available or already sold/reserved.'));
-        END IF;
-    END LOOP;
-    CLOSE seat_cursor;
-
-    -- Return error messages (if any)
-    SELECT * FROM TempErrors;
-END //
-DELIMITER ;
-
 -- Suggest fallback seats based on row/number ordering
 DELIMITER //
 CREATE PROCEDURE SuggestAlternateSeats(
@@ -2392,6 +2302,19 @@ BEGIN
     INSERT INTO Financial_Transaction (Type, Amount, Date, DuesPaymentID, Description) 
     VALUES ('I', NEW.AmountPaid, NEW.PaymentDate, NEW.PaymentID, CONCAT('Auto: Dues payment installment'));
 END //
+DELIMITER ;
+
+-- Trigger: Automatically add paid amount to totalDue
+DELIMITER //
+CREATE TRIGGER trg_BeforeDelete_DuesPayment
+BEFORE DELETE ON DuesPayment
+FOR EACH ROW
+BEGIN
+    UPDATE DuesOwed
+    SET TotalDue = TotalDue + OLD.AmountPaid
+    WHERE DuesID = OLD.DuesID;
+END;
+//
 DELIMITER ;
 
 -- Trigger: Automatically log income transaction on ticket sale
@@ -2593,15 +2516,15 @@ LEFT JOIN Patron p ON t.PatronID = p.PatronID;
 
 -- Create reusable function to calculate total paid so far for a DuesID
 DELIMITER //
-CREATE FUNCTION GetTotalPaidForDues(in_DuesID INT) RETURNS DECIMAL(10,2)
+CREATE FUNCTION GetTotalDueForDues(in_DuesID INT) RETURNS DECIMAL(10,2)
 DETERMINISTIC
 READS SQL DATA
 BEGIN
-    DECLARE total DECIMAL(10,2);
-    SELECT IFNULL(SUM(AmountPaid), 0) INTO total
-    FROM DuesPayment
+    DECLARE due DECIMAL(10,2);
+    SELECT TotalDue INTO due
+    FROM DuesOwed
     WHERE DuesID = in_DuesID;
-    RETURN total;
+    RETURN due;
 END //
 DELIMITER ;
 

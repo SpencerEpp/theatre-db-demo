@@ -320,9 +320,9 @@ def procedure():
 
 @app.route('/function', methods=['POST'])
 def function():
-    if request.form.get("action") == "GetTotalPaidForDues":
+    if request.form.get("action") == "GetTotalDueForDues":
         dues_id = int(sanitize_input(request.form['DuesID']))
-        return call_function("SELECT GetTotalPaidForDues(%s)", (dues_id,))
+        return call_function("SELECT GetTotalDueForDues(%s)", (dues_id,))
     return jsonify({"success": False, "error": "Unknown function action"})
 
 @app.route('/view', methods=['GET'])
