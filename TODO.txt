@@ -1,10 +1,3 @@
-FUNCTIONS TO ADD (IDK if we need these tbh, cuz idk whats going to use them)
-    - GetDuesStatusForMember(memberID) → Paid vs Owed
-    - GetTotalSponsorshipForProduction(productionID)
-    - GetTotalTicketRevenue(productionID)
-    - GetNetBalance(productionID) — alt to current summary proc
-    - GetPatronPurchaseHistory(patronID)
-
 1) Test all SQL code thoroughly, once tested apply changes to webapp.
 2) Test all functionality through the webapp to ensure front to backend is working as expected.
     Note: all procedures are called through the same code, if one works they should all work,
@@ -15,6 +8,8 @@ FUNCTIONS TO ADD (IDK if we need these tbh, cuz idk whats going to use them)
 5) Create submission doc - currently were around 3200 lines of code in this repo which is roughly
    65-70 pages, spencer will email the prof about submission. (pdf or pdf and zip of repo)
 
+- Note: Railway Server is in different timezone so web interface shows different time but query shows correct time. (Weird)
+
 Currently known errors:
 - During csv import only production_play table isn't populated, this error extents to AddPlayToProduction, 
   the error: Unknown column 'PlayID' in 'feild list' - yet the csv is correct, the loading code is correct 
@@ -22,10 +17,99 @@ Currently known errors:
   spent like 3hrs on it.
 - Calculated field in production doesnt work.
 - Trigger to update total cost in production doesnt work.
-- SmartTicketPurchase has a syntax error. (I dont think we need this just add the alternate seats procedure to the purchase ticket procedure)
+- Add the SmartTicketPurchase to purchase table Note: SmartTicketPurchase doesnt work.
 
+-- Smart multi-seat ticket purchase with fall back support
+DELIMITER //
+CREATE PROCEDURE SmartTicketPurchase(
+    IN in_ProductionID INT,
+    IN in_PatronID INT,        -- Can be NULL (public buyer)
+    IN in_SeatIDs TEXT,        -- e.g., '[1,2,3]'
+    IN in_Deadline DATE,
+    IN in_Price DECIMAL(6,2)
+)
+BEGIN
+    DECLARE seat_id INT;
+    DECLARE ticket_id INT DEFAULT NULL;
+    DECLARE done INT DEFAULT FALSE;
 
-- Prevent duplicate plays, auto increment allows for same to be added with different id
-   (applies to all create... procedures)
+    -- === Validate Inputs ===
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    -- PatronID may be NULL (public purchase), but if it's given, validate it
+    IF in_PatronID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Patron WHERE PatronID = in_PatronID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+    IF in_SeatIDs IS NULL OR JSON_LENGTH(in_SeatIDs) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'At least one seat must be selected';
+    END IF;
+    IF in_Price IS NULL OR in_Price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Price must be a non-negative value';
+    END IF;
 
-- to erd in the ticket table add reservation deadline
+    -- === Cursor Setup ===
+    DECLARE seat_cursor CURSOR FOR 
+        SELECT CAST(value AS UNSIGNED) 
+        FROM JSON_TABLE(in_SeatIDs, '$[*]' COLUMNS(value INT PATH '$')) AS jt;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- === Temp error table ===
+    DROP TEMPORARY TABLE IF EXISTS TempErrors;
+    CREATE TEMPORARY TABLE TempErrors (
+        Message VARCHAR(255)
+    );
+
+    -- === Process Each Seat ===
+    OPEN seat_cursor;
+    seat_loop: LOOP
+        FETCH seat_cursor INTO seat_id;
+        IF done THEN LEAVE seat_loop; END IF;
+
+        SET ticket_id = NULL;
+
+        -- Safely try to get the available ticket using a local BEGIN block
+        BEGIN
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET ticket_id = NULL;
+
+            SELECT TicketID INTO ticket_id
+            FROM Ticket
+            WHERE ProductionID = in_ProductionID AND SeatID = seat_id AND Status = 'A'
+            LIMIT 1;
+        END;
+
+        IF ticket_id IS NOT NULL THEN
+            -- Reserve the ticket
+            UPDATE Ticket
+            SET PatronID = in_PatronID,
+                Price = in_Price,
+                Status = 'S',
+                ReservationDeadline = in_Deadline
+            WHERE TicketID = ticket_id;
+
+            -- Log transaction
+            INSERT INTO Financial_Transaction (Type, Amount, Date, TicketID, ProductionID, Description)
+            VALUES ('I', in_Price, CURRENT_DATE, ticket_id, in_ProductionID, 'Smart Ticket Purchase');
+        ELSE
+            -- Record failure for this seat
+            INSERT INTO TempErrors (Message)
+            VALUES (CONCAT('Seat ID ', seat_id, ' is not available or already sold/reserved.'));
+        END IF;
+    END LOOP;
+    CLOSE seat_cursor;
+
+    -- Return error messages (if any)
+    SELECT * FROM TempErrors;
+END //
+DELIMITER ;

@@ -317,6 +317,19 @@ BEGIN
         SET MESSAGE_TEXT = 'Cost must be non-negative';
     END IF;
 
+    -- Duplicate check
+    IF EXISTS (
+        SELECT 1 FROM Play
+        WHERE Title = in_Title
+          AND Author = in_Author
+          AND Genre = in_Genre
+          AND NumberOfActs = in_NumberOfActs
+          AND Cost = in_Cost
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A play with the same details already exists';
+    END IF;
+
     -- Main logic
     INSERT INTO Play (Title, Author, Genre, NumberOfActs, Cost)
     VALUES (in_Title, in_Author, in_Genre, in_NumberOfActs, in_Cost);
@@ -460,6 +473,19 @@ BEGIN
     IF CHAR_LENGTH(in_Role) > 100 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Role cannot exceed 100 characters';
+    END IF;
+
+    -- Duplicate check
+    IF EXISTS (
+        SELECT 1 FROM Member
+        WHERE Name = in_Name
+          AND Email = in_Email
+          AND Phone = in_Phone
+          AND Address = in_Address
+          AND Role = in_Role
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A member with the same details already exists';
     END IF;
 
     -- Main logic
@@ -662,6 +688,15 @@ BEGIN
         SET MESSAGE_TEXT = 'Production date cannot be in the past';
     END IF;
 
+    -- Duplicate check
+    IF EXISTS (
+        SELECT 1 FROM Production
+        WHERE ProductionDate = in_ProductionDate
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A production already exists for this date';
+    END IF;
+
     -- Main logic
     INSERT INTO Production (ProductionDate)
     VALUES (in_ProductionDate);
@@ -841,6 +876,15 @@ BEGIN
         SET MESSAGE_TEXT = 'Reservation deadline cannot be in the past';
     END IF;
 
+    -- Duplicate check
+    IF EXISTS (
+        SELECT 1 FROM Ticket
+        WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A ticket already exists for this production and seat';
+    END IF;
+
     -- Main logic
     INSERT INTO Ticket (ProductionID, SeatID, Price, Status, ReservationDeadline)
     VALUES (in_ProductionID, in_SeatID, in_Price,'A', in_ReservationDeadline);
@@ -977,6 +1021,15 @@ BEGIN
         SET MESSAGE_TEXT = 'Sponsor type must be either "C" (Company) or "I" (Individual)';
     END IF;
 
+    -- Duplicate check
+    IF EXISTS (
+        SELECT 1 FROM Sponsor
+        WHERE Name = in_Name AND Type = in_Type
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A sponsor with this name and type already exists';
+    END IF;
+
     -- Main logic
     INSERT INTO Sponsor (Name, Type)
     VALUES (in_Name, in_Type);
@@ -1077,6 +1130,14 @@ BEGIN
         SET MESSAGE_TEXT = 'Address cannot exceed 100 characters';
     END IF;
 
+    -- Duplicate email check
+    IF EXISTS (
+        SELECT 1 FROM Patron WHERE Email = in_Email
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A patron with this email already exists';
+    END IF;
+
     -- Main logic
     INSERT INTO Patron (Name, Email, Address)
     VALUES (in_Name, in_Email, in_Address);
@@ -1174,6 +1235,14 @@ BEGIN
     IF in_Date < CURDATE() THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Meeting date cannot be in the past';
+    END IF;
+
+    -- Duplicate meeting check
+    IF EXISTS (
+        SELECT 1 FROM Meeting WHERE Type = in_Type AND Date = in_Date
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A meeting of this type already exists on this date';
     END IF;
 
     -- Main logic
@@ -1341,6 +1410,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Total amount due must be a non-negative value';
     END IF;
+
+    -- Duplicate check
     IF EXISTS (
         SELECT 1 FROM DuesOwed WHERE MemberID = in_MemberID AND Year = in_Year
     ) THEN
@@ -1474,6 +1545,10 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'SeatRow must be a single character';
     END IF;
+    IF ASCII(in_SeatRow) < ASCII('A') OR ASCII(in_SeatRow) > ASCII('Z') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'SeatRow must be a capital letter between A and Z';
+    END IF;
     IF in_Number IS NULL OR in_Number < 1 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Seat number must be a positive integer';
@@ -1482,6 +1557,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Seat number must not exceed 50';
     END IF;
+
+    -- Duplicate check
     IF EXISTS (
         SELECT 1 FROM Seat WHERE SeatRow = in_SeatRow AND Number = in_Number
     ) THEN
