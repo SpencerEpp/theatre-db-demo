@@ -16,8 +16,6 @@ CALL AddPlayToProduction(1, 1);
 
 -- AddProductionExpense
 CALL AddProductionExpense(200.00, '2025-10-01', 1, 'Description');
--- Can add expense of any date (propbaly should allow users to add expenses to past dates for record keeping)
--- Date can be null shouldnt be allowed
 -- Day has off by one error 10 shows up as 9
 
 -- (Working) AssignMemberToMeeting

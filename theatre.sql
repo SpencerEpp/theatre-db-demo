@@ -1672,6 +1672,10 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Description cannot exceed 255 characters';
     END IF;
+    IF in_Date IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid Date is required';
+    END IF;
 
     -- Main logic
     INSERT INTO Financial_Transaction (Type, Amount, Date, ProductionID, Description)
@@ -2514,7 +2518,7 @@ LEFT JOIN Patron p ON t.PatronID = p.PatronID;
 -- Supporting Code
 -- ========================================================================================
 
--- Create reusable function to calculate total paid so far for a DuesID
+-- Create reusable function to calculate remaining dues
 DELIMITER //
 CREATE FUNCTION GetTotalDueForDues(in_DuesID INT) RETURNS DECIMAL(10,2)
 DETERMINISTIC
@@ -2525,6 +2529,20 @@ BEGIN
     FROM DuesOwed
     WHERE DuesID = in_DuesID;
     RETURN due;
+END //
+DELIMITER ;
+
+-- Create reusable function to calculate total paid so far for a DuesID
+DELIMITER //
+CREATE FUNCTION GetTotalPaidForDues(in_DuesID INT) RETURNS DECIMAL(10,2)
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE total DECIMAL(10,2);
+    SELECT IFNULL(SUM(AmountPaid), 0) INTO total
+    FROM DuesPayment
+    WHERE DuesID = in_DuesID;
+    RETURN total;
 END //
 DELIMITER ;
 
