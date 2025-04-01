@@ -36,7 +36,7 @@
   <h2>Create Play</h2>
   <form onsubmit="submitForm(event, 'CreatePlay')">
     <input name="Title" placeholder="Title" required>
-    <input name="Author" placeholder="Author">
+    <input name="Author" placeholder="Author" required>
     <input name="Genre" placeholder="Genre" required>
     <input name="NumberOfActs" type="number" placeholder="Number of Acts" required>
     <input name="Cost" type="number" step="0.01" placeholder="Cost" required>
@@ -47,7 +47,7 @@
   <form onsubmit="submitForm(event, 'UpdatePlay')">
     <input name="PlayID" type="number" placeholder="PlayID" required>
     <input name="Title" placeholder="Title" required>
-    <input name="Author" placeholder="Author">
+    <input name="Author" placeholder="Author" required>
     <input name="Genre" placeholder="Genre" required>
     <input name="NumberOfActs" type="number" placeholder="Number of Acts" required>
     <input name="Cost" type="number" step="0.01" placeholder="Cost" required>
@@ -63,10 +63,10 @@
   <h2>Create Member</h2>
   <form onsubmit="submitForm(event, 'CreateMember')">
     <input name="Name" placeholder="Name" required>
-    <input name="Email" placeholder="Email">
-    <input name="Phone" placeholder="Phone">
-    <input name="Address" placeholder="Address">
-    <input name="Role" placeholder="Role">
+    <input name="Email" placeholder="Email" required>
+    <input name="Phone" placeholder="Phone" required>
+    <input name="Address" placeholder="Address" required>
+    <input name="Role" placeholder="Role" required>
     <button type="submit">Submit</button>
   </form>
 
@@ -74,10 +74,10 @@
   <form onsubmit="submitForm(event, 'UpdateMember')">
     <input name="MemberID" type="number" placeholder="MemberID" required>
     <input name="Name" placeholder="Name" required>
-    <input name="Email" placeholder="Email">
-    <input name="Phone" placeholder="Phone">
-    <input name="Address" placeholder="Address">
-    <input name="Role" placeholder="Role">
+    <input name="Email" placeholder="Email" required>
+    <input name="Phone" placeholder="Phone" required>
+    <input name="Address" placeholder="Address" required>
+    <input name="Role" placeholder="Role" required>
     <button type="submit">Submit</button>
   </form>
 
@@ -91,7 +91,7 @@
   <form onsubmit="submitForm(event, 'AssignMemberToProduction')">
     <input name="MemberID" type="number" placeholder="MemberID" required>
     <input name="ProductionID" type="number" placeholder="ProductionID" required>
-    <input name="Role" placeholder="Role">
+    <input name="Role" placeholder="Role" required>
     <button type="submit">Submit</button>
   </form>
 
@@ -141,7 +141,7 @@
     <input name="ProductionID" type="number" placeholder="ProductionID" required>
     <input name="SeatID" type="number" placeholder="SeatID" required>
     <input name="Price" type="number" step="0.01" placeholder="Price" required>
-    <input name="ReservationDeadline" type="date" placeholder="Reservation Deadline">
+    <input name="ReservationDeadline" type="date" placeholder="Reservation Deadline (Optional)">
     <button type="submit">Submit</button>
   </form>
   
@@ -204,8 +204,8 @@
   <h2>Create Patron</h2>
   <form onsubmit="submitForm(event, 'CreatePatron')">
     <input name="Name" placeholder="Name" required>
-    <input name="Email" placeholder="Email">
-    <input name="Address" placeholder="Address">
+    <input name="Email" placeholder="Email" required>
+    <input name="Address" placeholder="Address" required>
     <button type="submit">Submit</button>
   </form>
   
@@ -213,8 +213,8 @@
   <form onsubmit="submitForm(event, 'UpdatePatron')">
     <input name="PatronID" type="number" placeholder="PatronID" required>
     <input name="Name" placeholder="Name" required>
-    <input name="Email" placeholder="Email">
-    <input name="Address" placeholder="Address">
+    <input name="Email" placeholder="Email" required>
+    <input name="Address" placeholder="Address" required>
     <button type="submit">Submit</button>
   </form>
   
@@ -290,7 +290,7 @@
   <form onsubmit="submitForm(event, 'ReserveTicket')">
     <input name="TicketID" type="number" placeholder="TicketID" required>
     <input name="PatronID" type="number" placeholder="PatronID" required>
-    <input name="Deadline" type="date" placeholder="Reservation Deadline">
+    <input name="Deadline" type="date" placeholder="Reservation Deadline" required>
     <button type="submit">Submit</button>
   </form>
   
@@ -332,9 +332,9 @@
   <h2>Add Production Expense</h2>
   <form onsubmit="submitForm(event, 'AddProductionExpense')">
     <input name="Amount" placeholder="Amount" required>
-    <input name="Date" type="date" placeholder="Date">
+    <input name="Date" type="date" placeholder="Date" required>
     <input name="ProductionID" placeholder="ProductionID" required>
-    <input name="Description" placeholder="Description">
+    <input name="Description" placeholder="Description" required>
     <button type="submit">Submit</button>
   </form>
 
@@ -439,7 +439,6 @@
     <button type="submit">Submit</button>
   </form>
 
-  <!-- Suggest Alternate Seats -->
   <h2>Suggest Alternate Seats</h2>
   <form onsubmit="submitForm(event, 'SuggestAlternateSeats')">
     <input name="ProductionID" type="number" placeholder="ProductionID" required>
