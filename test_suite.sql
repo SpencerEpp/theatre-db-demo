@@ -7,7 +7,7 @@
 -- ==================================================================
 
 -- AddDuesInstallment
-CALL AddDuesPayment(1, '2024-10-01', 50.00);
+CALL AddDuesInstallment(1, '2024-10-01', 50.00);
 -- Dues installment uses Year instead of date.
 -- Member can overpay their dues.
 -- Day has off by one error 10 shows up as 9
