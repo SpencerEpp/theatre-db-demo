@@ -179,4 +179,13 @@ INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `
 INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('7', '7', '6', '25.04', 'A', '2025-04-18');
 INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('8', '8', '7', '21.73', 'A', '2025-04-14');
 INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('9', '9', '8', '35.23', 'S', '2025-04-11');
-INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', '10', '9', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '1', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '2', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '3', '34.65', 'S', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '4', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '5', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '6', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', NULL, '7', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', 10, '8', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', 10, '9', '34.65', 'A', '2025-03-31');
+INSERT INTO `Ticket` (`ProductionID`, `PatronID`, `SeatID`, `Price`, `Status`, `ReservationDeadline`) VALUES ('10', 10, '10', '34.65', 'A', '2025-03-31');
