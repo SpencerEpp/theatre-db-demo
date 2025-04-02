@@ -1962,6 +1962,14 @@ BEGIN
         SET MESSAGE_TEXT = 'Seat is currently reserved for another patron.';
     END IF;
 
+    -- If general user, do not let them buy a seat that is reserved
+    IF in_BuyerPatronID IS NULL THEN
+	IF currentPatronID iS NOT NULL THEN
+		SIGNAL SQLSTATE '45000'
+		SET MESSAGE_TEXT = 'Seat is currently reserved for another patron.';
+	END IF;
+    END IF;
+
     -- Proceed with purchase
     UPDATE Ticket
     SET Status = 'S', PatronID = in_BuyerPatronID, Price = in_Price
