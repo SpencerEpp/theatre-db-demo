@@ -96,6 +96,27 @@
         font-size: 1rem;
       }
     }
+
+    .production-list table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      color: #000;
+    }
+
+    .production-list th,
+    .production-list td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .production-list th {
+      background-color: #444;
+      color: #fff;
+    }
+
   </style>
 </head>
 <body>
@@ -157,30 +178,5 @@
         console.error(err);
       });
   </script>
-  
-
-  <!--
-  <script>
-    fetch('/view?name=vw_PlayListing')
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('productionList');
-        if (data && data.length > 0) {
-          container.innerHTML = '';
-          data.forEach(prod => {
-            const div = document.createElement('div');
-            div.style.marginBottom = '1.5rem';
-            div.innerHTML = `<strong>${prod.Title}</strong><br><em>By ${prod.Author}</em><br>Genre: ${prod.Genre}<br>Cost: $${prod.Cost.toFixed(2)}`;
-            container.appendChild(div);
-          });
-        } else {
-          container.innerHTML = '<p>No upcoming productions at this time.</p>';
-        }
-      })
-      .catch(err => {
-        document.getElementById('productionList').innerHTML = '<p>Error loading productions.</p>';
-        console.error(err);
-      });
-  </script>
 </body>
-</html> -->
+</html>
