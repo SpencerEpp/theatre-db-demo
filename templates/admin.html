@@ -37,6 +37,7 @@
     - The CSV import form is password-protected using `ADMIN_SECRET`
     - Responsive layout for streamlined data entry and analysis
     - All business logic is executed through backend stored procedures or functions
+    - PurchaseTicket requires `SeatIDs` formatted as a JSON string (e.g., "[101,102]")
 
 ========================================================================================= -->
 
@@ -693,19 +694,6 @@
         <h2>Unpaid Member Dues Report</h2>
         <form onsubmit="submitForm(event, 'GetMemberDuesReport')">
             <button type="submit">Generate Report</button>
-        </form>
-        <div class="responseArea"></div>
-    </div>
-    
-    <div class="form-section">
-        <h2>Smart Ticket Purchase</h2>
-        <form onsubmit="submitForm(event, 'SmartTicketPurchase')">
-            <input name="ProductionID" type="number" placeholder="ProductionID" required>
-            <input name="PatronID" type="number" placeholder="PatronID" required>
-            <input name="SeatIDs" placeholder="SeatIDs (e.g., [101,102,103])" required>
-            <input name="Deadline" type="date" required>
-            <input name="Price" type="number" step="0.01" placeholder="Ticket Price" required>
-            <button type="submit">Submit</button>
         </form>
         <div class="responseArea"></div>
     </div>
