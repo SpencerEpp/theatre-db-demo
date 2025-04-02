@@ -4,13 +4,14 @@
 #=========================================================================================
 
 # Imports
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import mysql.connector
 from mysql.connector import Error as MySQLError
 import traceback
 import html
 import os
 from import_csv_to_mysql import import_csv_data
+from datetime import timedelta
 
 app = Flask(__name__)
 
@@ -31,14 +32,14 @@ def sanitize_input(value):
 def call_procedure(proc_name, args=()):
     try:
         conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.callproc(proc_name, args)
         conn.commit()
         results = []
         for result in cursor.stored_results():
             fetched = result.fetchall()
             print(f"Fetched result from {proc_name}: {fetched}")
-            results.extend(result.fetchall())
+            results.extend(fetched)
         return {"success": True, "data": results or "Procedure executed successfully."}
     except MySQLError as e:
         print("MySQL Error:", str(e))
@@ -353,6 +354,87 @@ def import_csv_route():
         return jsonify({"success": True, "message": "CSV data imported successfully."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+    
+@app.route('/validate-id', methods=['POST'])
+def validate_id():
+    user_type = request.form.get('type')
+    print("Received form data:", request.form)
+
+    conn = None
+    cursor = None
+
+    try:
+        if user_type == "admin":
+            password = request.form.get("password")
+            expected = os.getenv("ADMIN_SECRET")
+            print("Admin password submitted:", password)
+            print("Expected from env:", expected)
+
+            if password == expected:
+                session.permanent = True
+                session["user_type"] = "admin"
+                return jsonify({"success": True})
+            else:
+                return jsonify({"success": False, "error": "Incorrect password."})
+
+        user_id = sanitize_input(request.form.get('id'))
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        if user_type == "patron":
+            cursor.execute("SELECT 1 FROM Patron WHERE PatronID = %s", (user_id,))
+        elif user_type == "member":
+            cursor.execute("SELECT 1 FROM Member WHERE MemberID = %s", (user_id,))
+        else:
+            return jsonify({"success": False, "error": "Invalid user type."})
+
+        result = cursor.fetchone()
+        if result:
+            session.permanent = True
+            session["user_type"] = user_type
+            session["user_id"] = int(user_id)
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "ID not found."})
+
+    except Exception as e:
+        print("Exception during /validate-id:", str(e))
+        return jsonify({"success": False, "error": str(e)})
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/admin')
+def admin_page():
+    if session.get("user_type") != "admin":
+        return redirect('/')
+    return render_template("admin.html")
+
+@app.route('/patron/<int:patron_id>')
+def patron_page(patron_id):
+    if session.get("user_type") != "patron" or session.get("user_id") != patron_id:
+        return redirect('/')
+    return render_template("patron.html", patron_id=patron_id)
+
+@app.route('/member/<int:member_id>')
+def member_page(member_id):
+    if session.get("user_type") != "member" or session.get("user_id") != member_id:
+        return redirect('/')
+    return render_template("member.html", member_id=member_id)
+
+@app.route('/guest')
+def guest_page():
+    return render_template("guest.html")
+
+app.secret_key = os.getenv("ADMIN_SECRET")
+app.permanent_session_lifetime = timedelta(hours=1)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

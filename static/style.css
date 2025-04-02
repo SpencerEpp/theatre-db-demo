@@ -1,6 +1,4 @@
-/* If we want to convert from basic in line CSS to a full CSS file do so here. */
-
-  /* Reset some basic styles */
+  /* Some basic styles */
   * {
     margin: 0;
     padding: 0;
@@ -130,4 +128,3 @@
       padding: 15px;
     }
   }
-
