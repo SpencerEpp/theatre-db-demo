@@ -1,0 +1,95 @@
+<!-- Guest Page: guest.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Access | Horizon Theatre</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f4f4;
+    }
+    .header {
+      background: url('/static/images/theatre-banner.jpg') no-repeat center center/cover;
+      padding: 40px;
+      color: white;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    }
+    .container {
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .form-section {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input, select, button {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Welcome Guest</h1>
+    <p>Explore productions and ticket options at Horizon Theatre</p>
+  </div>
+
+  <div class="container">
+    <!-- Guest-allowed procedures go here -->
+  </div>
+
+  <script>
+    function submitForm(event, action) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      formData.append("action", action);
+
+      fetch('/procedure', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        const out = document.getElementById("responseArea");
+        out.innerHTML = data.success ? `<pre>${JSON.stringify(data.data, null, 2)}</pre>` : `<span style='color:red;'>${data.error}</span>`;
+      });
+    }
+
+    function submitViewQuery(event, viewName) {
+      event.preventDefault();
+      fetch(`/view?name=${viewName}`)
+        .then(res => res.json())
+        .then(data => {
+          const out = document.getElementById("responseArea");
+          out.innerHTML = data.success ? `<pre>${JSON.stringify(data.data, null, 2)}</pre>` : `<span style='color:red;'>${data.error}</span>`;
+        });
+    }
+  </script>
+</body>
+</html>
