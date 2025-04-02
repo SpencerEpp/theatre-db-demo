@@ -1,4 +1,45 @@
-<!-- Admin Page: admin.html -->
+<!-- =========================================================================================
+
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This is the administrative portal for the Bella SW Community Theatre system.
+    It provides full backend access for authorized administrators to manage all data
+    entities in the database. This includes plays, productions, members, patrons,
+    sponsors, seating, dues, tickets, meetings, financial records, and system reports.
+
+    Features:
+      - Admin CSV import tool for loading data in bulk
+      - Full CRUD access to every core table: Plays, Members, Patrons, Tickets, Seats, etc.
+      - Assignment/removal of members and sponsors to/from productions and meetings
+      - Ticket status and pricing control
+      - Dues and payment tracking, including installment handling and rollbacks
+      - Smart ticket purchasing, alternate seat suggestions, and reservation overrides
+      - Custom reporting and view queries for auditing, summaries, and financial tracking
+      - Function call support (e.g., calculating remaining dues for a DuesID)
+
+    Backend Integration:
+      - Submits `POST` requests to `/procedure`, `/view`, `/function`, and `/admin/import-csv`
+      - Uses `FormData` for dynamic field parsing and JSON response rendering
+      - JavaScript logic auto-fills each form’s response box with inline tables or error messages
+
+  Notes:
+    - This page assumes the administrator is already authorized via a login mechanism
+    - The CSV import form is password-protected using `ADMIN_SECRET`
+    - Responsive layout for streamlined data entry and analysis
+    - All business logic is executed through backend stored procedures or functions
+
+========================================================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

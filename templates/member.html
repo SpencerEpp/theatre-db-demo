@@ -1,3 +1,42 @@
+<!-- =========================================================================================
+
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This is the authenticated member portal page for the Bella SW Community Theatre system.
+    It allows logged-in members to update their profile, manage their dues, view reports, 
+    interact with productions and tickets, and account deletion.
+
+    Features:
+      - Member-specific procedure access: dues payments, profile updates, participation history
+      - Full access to ticket purchasing, including smart seat suggestions and availability checks
+      - Role-aware submission: `MemberID` is auto-filled using session storage
+      - Report and view access: production rosters, dues status, and play listings
+      - Ability to view and undo dues payments
+      - Option to delete own member account
+      - Mobile-friendly layout with clearly segmented form sections
+
+    Backend Integration:
+      - Sends requests to Flask’s `/procedure` and `/view` endpoints
+      - Uses `FormData` to submit POST requests
+      - Filters response output per form section, rendering tables or raw JSON where applicable
+
+  Notes:
+    - Relies on `sessionStorage` to track the member’s ID securely across interactions
+    - Visual styling matches the application’s consistent theme with a banner and modular form layout
+    - SmartTicketPurchase requires a JSON-formatted seat list (e.g., "[101,102,103]")
+
+========================================================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

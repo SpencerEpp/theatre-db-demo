@@ -1,7 +1,52 @@
 -- ========================================================================================
--- INFO BLOCK
+--  
+--  Final Project
 --
+--  Advanced Databases: COMP 4225-001
+--  Prof: Dr. Said Baadel
 --
+--  Students: 
+--  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+--  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+--  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+--  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+--  
+--  Description:
+--  This SQL file defines the full schema and backend logic for a Theatre Management 
+--  System. It establishes a normalized relational structure for managing plays, 
+--  productions, ticket sales, patrons, members, sponsorships, seating, and finances.
+--  The schema is designed to support administrative and operational tasks while 
+--  ensuring data integrity through enforced constraints and business rules.
+--
+--  The schema includes a variety of entity and relationship tables to represent core 
+--  theatre concepts such as performances, people (both staff and patrons), seating 
+--  arrangements, and all associated financial obligations. These tables are supported 
+--  by structured foreign keys, cascading deletes where appropriate, and uniqueness 
+--  constraints to enforce real-world logic (e.g., preventing double-booked seats).
+--
+--  Stored procedures encapsulate business logic for core actions such as selling 
+--  tickets, recording dues payments, linking plays to productions, and handling 
+--  sponsorships. Each procedure includes input validation, error handling, and triggers 
+--  the appropriate automated financial entries where needed. Import procedures also 
+--  exist to support bulk loading from CSV files during setup or administrative updates.
+--
+--  A set of triggers handle automatic financial transaction logging, validation of 
+--  payment limits, and prevention of logic errors (such as duplicate seat reservations 
+--  or overpayment of dues). These ensure that all business rules are enforced directly 
+--  at the database level for safety and consistency.
+--
+--  Functions provide utility logic that supports procedural workflows, such as 
+--  checking seat availability and calculating outstanding balances. These are used 
+--  internally by procedures and also available for frontend validation or reporting.
+--
+--  Views are defined to simplify reporting and program generation. These include 
+--  financial summaries, sales reports, member balances, and printable cast/crew/sponsor 
+--  listings for each production. Views are designed to expose clean, application-ready 
+--  datasets for use by a connected frontend or for internal auditing and management.
+--
+--  This SQL file represents the complete data definition and operational layer of the 
+--  theatre system and is intended to be deployed into a MySQL-compatible RDBMS to 
+--  support both automated workflows and manual administrative control.
 --
 -- ========================================================================================
 

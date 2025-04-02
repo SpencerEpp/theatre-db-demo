@@ -1,4 +1,41 @@
-<!-- Patron Page: patron.html -->
+<!-- =========================================================================================
+
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This is the authenticated patron portal page for the Bella SW Community Theatre system.
+    It provides patrons with access to their account, reservation options, ticket purchases, 
+    and current/upcoming play information.
+
+    Features:
+      - Patron-specific procedure access: account updates, ticket reservation/cancellation,
+        smart seat selection, and account deletion
+      - View integration for exploring available plays via `vw_PlayListing`
+      - Role-aware logic using `sessionStorage` to inject `PatronID` into appropriate actions
+      - Inline response rendering for form submissions (success, errors, and tabular data)
+      - Mobile-friendly layout with clearly segmented form sections
+
+    Backend Integration:
+      - Uses FormData and fetch() to POST requests to Flask’s `/procedure` endpoint
+      - Supports `/view` endpoint for read-only queries
+      - Dynamically renders result tables or error messages within each form block
+
+  Notes:
+    - SmartTicketPurchase requires `SeatIDs` formatted as a JSON string (e.g., "[101,102]")
+    - Patron actions are permission-limited to prevent unauthorized access to member/admin features
+    - All requests rely on client-side JavaScript and session-based identity
+
+========================================================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

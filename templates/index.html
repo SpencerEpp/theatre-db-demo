@@ -1,3 +1,42 @@
+<!-- =========================================================================================
+ 
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This is the landing page for the Bella SW Community Theatre web application. It serves 
+    as the public-facing interface and entry point for users of all roles — guests, patrons, 
+    members, and administrators — providing links to the appropriate login or access pages.
+
+    The page includes:
+      - A full-screen responsive hero banner with call-to-action buttons
+      - Smooth scrolling design and clear section layout
+      - Informational sections about the theatre and its mission
+      - A dynamic table that fetches and displays upcoming or current plays using data 
+        from the backend SQL view `vw_PlayListing`, populated via an asynchronous fetch
+
+    Styling is handled with internal CSS and references assets from the `/static` directory, 
+    including a custom background image and stylesheet.
+
+    This page is connected to the Flask backend, which supplies play listing data via 
+    `/view?name=vw_PlayListing`. It handles loading, fallback messaging, and error cases 
+    gracefully using client-side JavaScript.
+
+  Notes:
+    - Background image attribution included in HTML comment
+    - All buttons use client-side navigation (`onclick`) to route users to their login pages
+    - The page is fully responsive for mobile and desktop devices
+
+========================================================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,3 +1,38 @@
+<!-- =========================================================================================
+ 
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This is the login page for the Bella SW Community Theatre application. It dynamically
+    adjusts its form depending on the user type (admin, patron, or member) based on the
+    query string parameter `?type=` in the URL.
+
+    Features:
+      - Admin login requires only a password and is validated via a secret stored on the backend
+      - Patron and Member logins require an ID and validate that it exists in the database
+      - Input handling, role-based session tracking, and conditional redirects are handled 
+        entirely through client-side JavaScript
+      - Errors are caught and reported cleanly to the user, and invalid access types are redirected
+
+    Styling is handled inline and complements the app’s visual theme with a full-screen
+    background image and a responsive centered login box.
+
+  Notes:
+    - Login routing logic is tightly integrated with Flask’s `/validate-id` endpoint
+    - Query string validation ensures that only recognized login types may access the page
+    - Background image is reused from `index.html` to maintain consistency
+
+========================================================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

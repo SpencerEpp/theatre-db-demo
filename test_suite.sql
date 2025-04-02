@@ -1,10 +1,41 @@
--- ==================================================================
--- TEST SUITE FOR THEATRE DB
--- 
--- Note: Each call only has one instance of the call be sure to test
---       all possible invalid inputs along with the valid call. i.e.
---       chars when its expecting ints, nulls, improper lengths etc. 
--- ==================================================================
+-- =========================================================================================
+--
+--  Final Project
+--
+--  Advanced Databases: COMP 4225-001
+--  Prof: Dr. Said Baadel
+--
+--  Students: 
+--  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+--  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+--  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+--  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+--
+--  Description:
+--    This SQL script defines the test suite used to validate core functionality of the 
+--    Theatre Management System database. It runs a structured set of INSERT, CALL, and 
+--    SELECT operations to confirm that stored procedures, triggers, constraints, and 
+--    business logic behave as expected.
+--
+--    The suite includes tests for:
+--      - Ticket sales, seat assignment, and overbooking protection
+--      - Dues record creation, payments, and validation against overpayment
+--      - Production expense logging and sponsor contributions
+--      - Financial transaction creation via automated triggers
+--      - CRUD and linkage procedures across plays, members, meetings, and patrons
+--
+--    Note: Each procedure is tested with only one valid call. Be sure to manually test 
+--    additional invalid inputs — such as character strings where integers are expected, 
+--    NULLs, missing or out-of-range values, and improperly formatted parameters — to 
+--    confirm that input validation and error handling behave correctly.
+--
+--  Usage:
+--    Run this script after loading the schema (`theatre.sql`) and optionally seeding 
+--    with sample data (`import_data_local.sql`). Intended for local QA prior to 
+--    deployment or integration.
+--
+-- =========================================================================================
+
 
 -- (Working) AddDuesInstallment
 -- CALL AddDuesInstallment(1, '2025-10-01', 50.00);

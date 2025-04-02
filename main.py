@@ -1,5 +1,48 @@
 #=========================================================================================
-# INFO BLOCK
+#
+#  Final Project
+#
+#  Advanced Databases: COMP 4225-001
+#  Prof: Dr. Said Baadel
+#
+#  Students: 
+#  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+#  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+#  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+#  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+#
+#  Description:
+#    This is the primary Flask backend for the Theatre Management System. It uses Flask to 
+#    provide a RESTful interface between the frontend and a MySQL database. It acts as a     
+#    bridge between the web-based frontend and a MySQL database, enabling dynamic form 
+#    submission, data retrieval, role-based page routing, and backend automation.
+#
+#    It uses a centralized dispatch pattern (`args_map`) to securely map user actions 
+#    to over 70 stored procedures and functions, supporting:
+#      - Full CRUD operations on plays, members, patrons, productions, tickets, sponsors, 
+#        seats, meetings, and dues
+#      - Smart ticket purchasing and seat availability logic with fallback suggestions
+#      - Real-time report generation from SQL views (ticket sales, financial summaries, etc.)
+#      - Admin-only CSV import functionality via a protected route
+#
+#    Input sanitization is performed on all form fields using `html.escape()` to prevent 
+#    injection and XSS attacks. Backend errors are caught and logged using detailed 
+#    exception handling, with MySQL errors and Python stack traces returned for debugging.
+#
+#    Flask session management is used for user login state, including role-based access 
+#    for patrons, members, and administrators. Sessions are marked permanent with a 
+#    timeout of 1 hour.
+#
+#    A `/view` route is provided for dynamic access to SQL views by name, which is 
+#    powerful but should be protected in production to avoid exposing sensitive views.
+#
+#    This application is deployed using Railway, a cloud hosting platform. Environment 
+#    variables are managed through Railway’s settings to ensure secure configuration 
+#    of database credentials and admin secrets during deployment.
+#
+#  Environment Variables Expected:
+#    MYSQLHOST, MYSQLUSER, MYSQL_ROOT_PASSWORD, MYSQLDATABASE, MYSQLPORT
+#    ADMIN_SECRET, PORT
 #
 #=========================================================================================
 

@@ -1,4 +1,44 @@
-<!-- Guest Page: guest.html -->
+<!-- =========================================================================================
+
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This is the guest interface page for the Bella SW Community Theatre web application.
+    It provides open access to a subset of backend functionality without requiring login.
+    Guests can explore current productions, check seat availability, and purchase tickets
+    with smart multi-seat logic.
+
+    Features:
+      - Procedures exposed: CheckSeatAvailability, PurchaseTicket, SmartTicketPurchase, 
+        SuggestAlternateSeats
+      - View access: vw_PlayListing for displaying available shows
+      - Results are dynamically rendered using JavaScript and formatted as scrollable tables
+      - Each form section handles its own input submission and output display
+      - Responsive layout with modern design using internal CSS and background styling
+      - Mobile-friendly layout with clearly segmented form sections
+
+    Backend Integration:
+      - Routes requests to the `/procedure` and `/view` endpoints on the Flask server
+      - Data sent using FormData objects and handled asynchronously with fetch()
+      - Error messages and results are displayed inline per section
+
+  Notes:
+    - Intended for public use (unauthenticated)
+    - Background and layout styling consistent with index and login pages
+    - SeatIDs in SmartTicketPurchase must be formatted as a stringified JSON array
+    - SmartTicketPurchase requires a JSON-formatted seat list (e.g., "[101,102,103]")
+
+========================================================================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
