@@ -161,21 +161,21 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- Describe Queries to Show All DDL Structures
 -- ========================================================================================
 
-DESCRIBE Play;
-DESCRIBE Production;
-DESCRIBE Production_Play;
-DESCRIBE Member;
-DESCRIBE Member_Production;
-DESCRIBE DuesOwed;
-DESCRIBE DuesPayment;
-DESCRIBE Sponsor;
-DESCRIBE Production_Sponsor;
-DESCRIBE Patron;
-DESCRIBE Seat;
-DESCRIBE Ticket;
-DESCRIBE Meeting;
-DESCRIBE Member_Meeting;
-DESCRIBE Financial_Transaction;
+-- DESCRIBE Play;
+-- DESCRIBE Production;
+-- DESCRIBE Production_Play;
+-- DESCRIBE Member;
+-- DESCRIBE Member_Production;
+-- DESCRIBE DuesOwed;
+-- DESCRIBE DuesPayment;
+-- DESCRIBE Sponsor;
+-- DESCRIBE Production_Sponsor;
+-- DESCRIBE Patron;
+-- DESCRIBE Seat;
+-- DESCRIBE Ticket;
+-- DESCRIBE Meeting;
+-- DESCRIBE Member_Meeting;
+-- DESCRIBE Financial_Transaction;
 
 -- ========================================================================================
 -- DDL Statements
@@ -1990,7 +1990,7 @@ BEGIN
     -- Main logic
     -- Look up the ticket record
     SELECT TicketID, Status, PatronID, ReservationDeadline
-    INTO currentTicketID, currentStatus, currentPatronID, reservationDeadline
+    INTO currentTicketID, currentStatus, currentPatronID, currentReservationDeadline
     FROM Ticket
     WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID;
 
