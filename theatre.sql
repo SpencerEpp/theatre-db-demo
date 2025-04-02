@@ -1889,10 +1889,10 @@ CREATE PROCEDURE PurchaseTicket (
     IN in_Price DECIMAL(6,2)
 )
 BEGIN
-    DECLARE ticketID INT;
+    DECLARE currentTicketID INT;
     DECLARE currentStatus CHAR(1);
     DECLARE currentPatronID INT;
-    DECLARE reservationDeadline DATE;
+    DECLARE currentReservationDeadline DATE;
 
     -- Validation
     IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
@@ -1925,7 +1925,7 @@ BEGIN
     -- Main logic
     -- Look up the ticket record
     SELECT TicketID, Status, PatronID, ReservationDeadline
-    INTO ticketID, currentStatus, currentPatronID, reservationDeadline
+    INTO currentTicketID, currentStatus, currentPatronID, reservationDeadline
     FROM Ticket
     WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID;
 
@@ -1936,7 +1936,7 @@ BEGIN
     END IF;
 
     -- Reject if reserved and deadline not passed and buyer is not the assigned patron
-    IF currentPatronID IS NOT NULL AND currentPatronID != in_BuyerPatronID AND (reservationDeadline IS NULL OR reservationDeadline >= CURRENT_DATE) THEN
+    IF currentPatronID IS NOT NULL AND currentPatronID != in_BuyerPatronID AND (currentReservationDeadline IS NULL OR currentReservationDeadline >= CURRENT_DATE) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Seat is currently reserved for another patron.';
     END IF;
@@ -1944,7 +1944,7 @@ BEGIN
     -- Proceed with purchase
     UPDATE Ticket
     SET Status = 'S', PatronID = in_BuyerPatronID, Price = in_Price
-    WHERE TicketID = ticketID;
+    WHERE TicketID = currentTicketID;
 
     -- Log the financial transaction
     INSERT INTO Financial_Transaction (Type, Amount, Date, TicketID, ProductionID, Description) 
