@@ -747,6 +747,25 @@
   </div>
 
   <script>
+    function submitImport(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+
+      fetch("/admin/import-csv", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message || data.error || "Done.");
+      })
+      .catch(err => {
+        alert("Import failed.");
+        console.error(err);
+      });
+    }
+    
     function renderTable(dataArray) {
       if (!Array.isArray(dataArray) || dataArray.length === 0) return "No results.";
       const headers = Object.keys(dataArray[0]);
