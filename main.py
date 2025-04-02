@@ -39,7 +39,7 @@ def call_procedure(proc_name, args=()):
         for result in cursor.stored_results():
             fetched = result.fetchall()
             print(f"Fetched result from {proc_name}: {fetched}")
-            results.extend(result.fetchall())
+            results.extend(fetched)
         return {"success": True, "data": results or "Procedure executed successfully."}
     except MySQLError as e:
         print("MySQL Error:", str(e))
@@ -406,7 +406,6 @@ def validate_id():
             cursor.close()
         if conn:
             conn.close()
-
 
 @app.route('/login')
 def login():
