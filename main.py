@@ -358,11 +358,19 @@ def import_csv_route():
 @app.route('/validate-id', methods=['POST'])
 def validate_id():
     user_type = request.form.get('type')
+    print("Received form data:", request.form)
+
+    conn = None
+    cursor = None
 
     try:
         if user_type == "admin":
             password = request.form.get("password")
-            if password == os.getenv("ADMIN_SECRET"):
+            expected = os.getenv("ADMIN_SECRET")
+            print("Admin password submitted:", password)
+            print("Expected from env:", expected)
+
+            if password == expected:
                 session.permanent = True
                 session["user_type"] = "admin"
                 return jsonify({"success": True})
@@ -372,6 +380,7 @@ def validate_id():
         user_id = sanitize_input(request.form.get('id'))
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
+
         if user_type == "patron":
             cursor.execute("SELECT 1 FROM Patron WHERE PatronID = %s", (user_id,))
         elif user_type == "member":
@@ -387,11 +396,17 @@ def validate_id():
             return jsonify({"success": True})
         else:
             return jsonify({"success": False, "error": "ID not found."})
+
     except Exception as e:
+        print("Exception during /validate-id:", str(e))
         return jsonify({"success": False, "error": str(e)})
+
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 
 @app.route('/login')
 def login():
@@ -424,5 +439,5 @@ app.permanent_session_lifetime = timedelta(hours=1)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-    
+
 # END OF DOC
