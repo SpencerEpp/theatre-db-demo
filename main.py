@@ -386,6 +386,10 @@ def validate_id():
         cursor.close()
         conn.close()
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/admin')
 def admin_page():
     if session.get("user_type") != "admin":
