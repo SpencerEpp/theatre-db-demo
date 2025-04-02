@@ -84,101 +84,6 @@
     </div>
   </div>
 
-
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const loginType = urlParams.get('type');
-  
-    if (!['admin', 'patron', 'member'].includes(loginType)) {
-      window.location.replace('/');
-    }
-  
-    // Set heading text
-    const titleMap = {
-      patron: 'Patron Login',
-      member: 'Member Login',
-      admin: 'Admin Login'
-    };
-    document.getElementById('loginTitle').innerText = titleMap[loginType];
-  
-    // Adjust field requirements
-    const idField = document.getElementById('idField');
-    const passwordField = document.getElementById('passwordField');
-  
-    if (loginType === 'admin') {
-      idField.removeAttribute('required');
-      passwordField.setAttribute('required', 'required');
-    } else {
-      idField.setAttribute('required', 'required');
-      passwordField.removeAttribute('required');
-    }
-  
-    function handleLogin(event) {
-      event.preventDefault();
-      const id = idField.value;
-      const password = passwordField.value;
-  
-      const formData = new FormData();
-      formData.append('type', loginType);
-  
-      if (loginType === 'admin') {
-        formData.append('password', password);
-  
-        fetch('/validate-id', {
-          method: 'POST',
-          body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            window.location.href = '/admin';
-          } else {
-            alert('Incorrect admin password.');
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          alert('Login check failed. Please try again.');
-        });
-  
-        return;
-      }
-  
-      if (!id) {
-        alert(`${loginType.charAt(0).toUpperCase() + loginType.slice(1)} ID is required.`);
-        return;
-      }
-  
-      formData.append('id', id);
-  
-      fetch('/validate-id', {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // Store PatronID or MemberID in sessionStorage
-          if (loginType === 'patron') {
-            sessionStorage.setItem('patronId', data.id);
-            window.location.href = '/patron';
-          } else if (loginType === 'member') {
-            sessionStorage.setItem('memberId', data.id);
-            window.location.href = '/member';
-          }
-        } else {
-          alert(`Invalid ${loginType} ID.`);
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Login check failed. Please try again.');
-      });
-    }
-  </script>
-  
-
-  <!--
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const loginType = urlParams.get('type');
@@ -265,6 +170,6 @@
         alert('Login check failed. Please try again.');
       });
     }
-  </script> -->
+  </script>
 </body>
 </html>
