@@ -68,6 +68,7 @@ DROP PROCEDURE IF EXISTS AddDuesInstallment;
 DROP PROCEDURE IF EXISTS UndoDuesInstallment;
 DROP PROCEDURE IF EXISTS PurchaseTicket;
 DROP PROCEDURE IF EXISTS UndoTicketPurchase;
+DROP PROCEDURE IF EXISTS SmartTicketPurchase;
 
 -- Report procedures
 DROP PROCEDURE IF EXISTS ListTicketsForProduction; 
@@ -2003,6 +2004,92 @@ BEGIN
     -- Remove the linked financial transaction
     DELETE FROM Financial_Transaction
     WHERE TicketID = in_TicketID;
+END //
+DELIMITER ;
+
+-- Smart multi-seat ticket purchase with fall back support
+DELIMITER //
+CREATE PROCEDURE SmartTicketPurchase(
+    IN in_ProductionID INT,
+    IN in_PatronID INT,        -- Can be NULL (public buyer)
+    IN in_SeatIDs TEXT,        -- e.g., '[1,2,3]'
+    IN in_Deadline DATE,
+    IN in_Price DECIMAL(6,2)
+)
+BEGIN
+    DECLARE seat_id INT;
+    DECLARE ticket_id INT DEFAULT NULL;
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE seats_length INT;
+
+    -- === Cursor Setup ===
+	DECLARE seat_cursor CURSOR FOR 
+		SELECT CAST(value AS UNSIGNED) 
+		FROM JSON_TABLE(in_SeatIDs, '$[*]'
+			columns(
+				value INT path '$')
+			) AS ticket_requests;
+
+	-- === Loop/Transaction Handlers ===
+    DECLARE CONTINUE HANDLER FOR NOT FOUND 
+		BEGIN
+			SET done = TRUE;
+            COMMIT;
+		END;
+        
+	-- if purchase errors, rollback transaction and suggest alternate seats. 
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			CALL SuggestAlternateSeats(in_ProductionID, JSON_LENGTH(in_SeatIDs,'$[*]'));
+        END;
+        
+        
+    -- === Validate Inputs ===
+    IF in_ProductionID IS NULL OR in_ProductionID < 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Valid ProductionID is required';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM Production WHERE ProductionID = in_ProductionID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ProductionID does not exist';
+    END IF;
+    -- PatronID may be NULL (public purchase), but if it's given, validate it
+    IF in_PatronID IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Patron WHERE PatronID = in_PatronID
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'PatronID does not exist';
+    END IF;
+    IF in_SeatIDs IS NULL OR JSON_LENGTH(in_SeatIDs) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'At least one seat must be selected';
+    END IF;
+    IF in_Price IS NULL OR in_Price < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Price must be a non-negative value';
+    END IF;
+    
+	-- === Process Each Seat request ===
+	START TRANSACTION;
+	OPEN seat_cursor;
+	seat_loop: LOOP
+		FETCH seat_cursor INTO seat_id;
+		IF done THEN LEAVE seat_loop; END IF;
+		CALL PurchaseTicket(in_ProductionID, seat_id, in_PatronID, in_Price);
+	END LOOP;
+	CLOSE seat_cursor;
+
+
+--     -- === Temp error table ===
+--     DROP TEMPORARY TABLE IF EXISTS TempErrors;
+--     CREATE TEMPORARY TABLE TempErrors (
+--         Message VARCHAR(255)
+--     );
+
+
+--     -- Return error messages (if any)
+--     SELECT * FROM TempErrors;
 END //
 DELIMITER ;
 
