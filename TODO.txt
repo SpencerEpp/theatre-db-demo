@@ -1,10 +1,3 @@
-- Note: Railway Server is in different timezone so web interface shows different time but query shows correct time. (Weird)
-
-5) Create submission doc - currently were around 3200 lines of code in this repo which is roughly
-   65-70 pages, spencer will email the prof about submission. (pdf or pdf and zip of repo)
-
-
-
 Currently known errors:
 - Add the SmartTicketPurchase to purchase table Note: SmartTicketPurchase doesnt work.
 
