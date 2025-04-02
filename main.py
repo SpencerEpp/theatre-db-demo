@@ -412,7 +412,7 @@ def member_page(member_id):
 def guest_page():
     return render_template("guest.html")
 
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
+app.secret_key = os.getenv("ADMIN_SECRET")
 app.permanent_session_lifetime = timedelta(hours=1)
 
 if __name__ == '__main__':
