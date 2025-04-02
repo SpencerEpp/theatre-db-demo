@@ -14,7 +14,7 @@ csv_dir = "csv_data"  # Folder where CSVs live (relative to project root)
 
 table_columns = {
     "Play": ["PlayID", "Title", "Author", "Genre", "NumberOfActs", "Cost"],
-    "Production": ["ProductionID", "ProductionDate"],
+    "Production": ["ProductionID", "ProductionDate", "TimeOfProduction"],
     "Production_Play": ["ProductionID", "PlayID"],
     "Member": ["MemberID", "Name", "Email", "Phone", "Address", "Role"],
     "Member_Production": ["MemberID", "ProductionID", "Role"],
