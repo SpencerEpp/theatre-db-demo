@@ -32,7 +32,7 @@ def sanitize_input(value):
 def call_procedure(proc_name, args=()):
     try:
         conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         cursor.callproc(proc_name, args)
         conn.commit()
         results = []
