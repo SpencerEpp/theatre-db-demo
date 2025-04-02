@@ -1,45 +1,17 @@
-- Note: Railway Server is in different timezone so web interface shows different time but query shows correct time. (Weird)
-
-1) Create submission doc - currently were around 3200 lines of code in this repo which is roughly
+1) Test all SQL code thoroughly, once tested apply changes to webapp.
+2) Test all functionality through the webapp to ensure front to backend is working as expected.
+    Note: all procedures are called through the same code, if one works they should all work,
+          this also goes for functions and views which have their own way to call them but all 
+          instances of them use there respective function.
+3) Ensure nothing is missing - create and test it if missing.
+4) Make website pretty
+5) Create submission doc - currently were around 3200 lines of code in this repo which is roughly
    65-70 pages, spencer will email the prof about submission. (pdf or pdf and zip of repo)
+
+- Note: Railway Server is in different timezone so web interface shows different time but query shows correct time. (Weird)
 
 Currently known errors:
 - Add the SmartTicketPurchase to purchase table Note: SmartTicketPurchase doesnt work.
-
-
-
-- Need to add time to Production and ticket
-CheckSeatAvailability
-ListTicketsForProduction 
-GetPatronReport
-GetTicketSalesReport
-SuggestAlternateSeats
-
-
-- Comment block at top of all submission files
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 -- Smart multi-seat ticket purchase with fall back support
 DELIMITER //

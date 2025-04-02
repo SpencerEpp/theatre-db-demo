@@ -130,7 +130,6 @@ CREATE TABLE Play (
 CREATE TABLE Production (
     ProductionID INT PRIMARY KEY AUTO_INCREMENT,
     ProductionDate DATE NOT NULL,
-    TimeOfProduction TIME NOT NULL,
     TotalCost DECIMAL(12,2) DEFAULT 0
 );
 
@@ -673,8 +672,7 @@ DELIMITER ;
 -- CREATE PRODUCTION
 DELIMITER //
 CREATE PROCEDURE CreateProduction (
-    IN in_ProductionDate DATE,
-    IN in_ProductionTime TIME
+    IN in_ProductionDate DATE
 )
 BEGIN
     -- Validation
@@ -686,23 +684,19 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Production date cannot be in the past';
     END IF;
-    IF in_ProductionTime IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Production time is required';
-    END IF;
 
     -- Duplicate check
     IF EXISTS (
         SELECT 1 FROM Production
-        WHERE ProductionDate = in_ProductionDate AND TimeOfProduction = in_ProductionTime
+        WHERE ProductionDate = in_ProductionDate
     ) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'A production already exists for this date';
     END IF;
 
     -- Main logic
-    INSERT INTO Production (ProductionDate, TimeOfProduction)
-    VALUES (in_ProductionDate, in_ProductionTime);
+    INSERT INTO Production (ProductionDate)
+    VALUES (in_ProductionDate);
 END //
 DELIMITER ;
 
@@ -710,8 +704,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE UpdateProduction (
     IN in_ProductionID INT,
-    IN in_ProductionDate DATE,
-    IN in_ProductionTime TIME
+    IN in_ProductionDate DATE
 )
 BEGIN
     -- Validation
@@ -731,14 +724,10 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Production date cannot be in the past';
     END IF;
-    IF in_ProductionTime IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Production time is required';
-    END IF;
 
     -- Main logic
     UPDATE Production
-    SET ProductionDate = in_ProductionDate AND TimeOfProduction = in_ProductionTime
+    SET ProductionDate = in_ProductionDate
     WHERE ProductionID = in_ProductionID;
 END //
 DELIMITER ;
@@ -1487,15 +1476,9 @@ BEGIN
     END IF;
 
     -- Main logic
-    SELECT 
-        t.TicketID,
-        t.Status,
-        t.PatronID,
-        t.ReservationDeadline,
-        p.TimeOfProduction
-    FROM Ticket t
-    JOIN Production p ON t.ProductionID = p.ProductionID
-    WHERE t.ProductionID = in_ProductionID AND t.SeatID = in_SeatID;
+    SELECT TicketID, Status, PatronID, ReservationDeadline
+    FROM Ticket
+    WHERE ProductionID = in_ProductionID AND SeatID = in_SeatID;
 END //
 DELIMITER ;
 
@@ -2032,12 +2015,10 @@ BEGIN
         t.Status,
         t.ReservationDeadline,
         p.Name AS PatronName,
-        p.Email AS PatronEmail,
-        pr.TimeOfProduction
+        p.Email AS PatronEmail
     FROM Ticket t
     JOIN Seat s ON t.SeatID = s.SeatID
     LEFT JOIN Patron p ON t.PatronID = p.PatronID
-    JOIN Production pr ON t.ProductionID = pr.ProductionID
     WHERE t.ProductionID = in_ProductionID;
 END //
 DELIMITER ;
@@ -2250,10 +2231,8 @@ BEGIN
         t.SeatID,
         t.Price,
         t.Status,
-        t.ReservationDeadline,
-        pr.TimeOfProduction
+        t.ReservationDeadline
     FROM Ticket t
-    JOIN Production pr ON t.ProductionID = pr.ProductionID
     WHERE t.PatronID = in_PatronID;
 END //
 DELIMITER ;
@@ -2281,12 +2260,10 @@ BEGIN
         s.Number AS SeatNumber,
         t.Price,
         t.Status,
-        p.Name AS Buyer,
-        pr.TimeOfProduction
+        p.Name AS Buyer
     FROM Ticket t
     JOIN Seat s ON t.SeatID = s.SeatID
     LEFT JOIN Patron p ON t.PatronID = p.PatronID
-    JOIN Production pr ON t.ProductionID = pr.ProductionID
     WHERE t.ProductionID = in_ProductionID
     ORDER BY s.SeatRow, s.Number;
 
@@ -2351,15 +2328,9 @@ BEGIN
     END IF;
 
     -- Query
-    SELECT 
-        t.SeatID, 
-        s.SeatRow, 
-        s.Number, 
-        t.Price,
-        pr.TimeOfProduction
+    SELECT t.SeatID, s.SeatRow, s.Number, t.Price
     FROM Ticket t
     JOIN Seat s ON t.SeatID = s.SeatID
-    JOIN Production pr ON t.ProductionID = pr.ProductionID
     WHERE t.ProductionID = in_ProductionID
       AND t.Status = 'A'
     ORDER BY s.SeatRow, s.Number
@@ -2656,12 +2627,10 @@ SELECT
     t.Price,
     t.Status,
     p.Name AS PatronName,
-    p.Email AS PatronEmail,
-    pr.TimeOfProduction
+    p.Email AS PatronEmail
 FROM Ticket t
 JOIN Seat s ON t.SeatID = s.SeatID
-LEFT JOIN Patron p ON t.PatronID = p.PatronID
-JOIN Production pr ON t.ProductionID = pr.ProductionID;
+LEFT JOIN Patron p ON t.PatronID = p.PatronID;
 
 -- View member contact info and dues status(paid/not paid)
 CREATE VIEW vw_MemberDuesStatus AS
@@ -2699,14 +2668,9 @@ GROUP BY p.ProductionID, p.ProductionDate;
 
 -- View ticket summary for any given ticket
 CREATE VIEW vw_TicketSummary AS
-SELECT 
-    t.TicketID,
-    t.Status,
-    p.Name AS Patron,
-    pr.TimeOfProduction
+SELECT t.TicketID, t.Status, p.Name AS Patron
 FROM Ticket t
-LEFT JOIN Patron p ON t.PatronID = p.PatronID
-JOIN Production pr ON t.ProductionID = pr.ProductionID;
+LEFT JOIN Patron p ON t.PatronID = p.PatronID;
 
 -- ========================================================================================
 -- Supporting Code

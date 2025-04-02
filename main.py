@@ -127,8 +127,7 @@ def procedure():
             int(sanitize_input(request.form['ProductionID']))
         ],
         "CreateProduction": lambda: [
-            sanitize_input(request.form['ProductionDate']),
-            sanitize_input(request.form['TimeOfProduction'])
+            sanitize_input(request.form['ProductionDate'])
         ],
         "UpdateProduction": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
