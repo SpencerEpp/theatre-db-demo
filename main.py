@@ -343,6 +343,13 @@ def procedure():
             sanitize_input(request.form['StartDate']) if request.form['StartDate'] else None,
             sanitize_input(request.form['EndDate']) if request.form['EndDate'] else None
         ],
+        "SmartTicketPurchase": lambda: [
+            int(sanitize_input(request.form['ProductionID'])),
+            int(sanitize_input(request.form['PatronID'])),
+            sanitize_input(request.form['SeatIDs']),  # Must be JSON string like "[101,102]"
+            sanitize_input(request.form['Deadline']),
+            float(sanitize_input(request.form['Price']))
+        ],
         "SuggestAlternateSeats": lambda: [
             int(sanitize_input(request.form['ProductionID'])),
             int(sanitize_input(request.form['SeatCount']))
