@@ -118,13 +118,30 @@
       const password = passwordField.value;
 
       if (loginType === 'admin') {
-        if (password !== 'admin_secret') {
-          alert('Incorrect admin password.');
-          return;
-        }
-        window.location.href = '/admin';
+        const formData = new FormData();
+        formData.append('type', loginType);
+        formData.append('password', password);
+
+        fetch('/validate-id', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+            window.location.href = '/admin';
+            } else {
+            alert(`Incorrect admin password.`);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Login check failed. Please try again.');
+        });
+
         return;
       }
+
 
       // Validate Patron/Member ID via backend
       if (!id) {
