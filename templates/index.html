@@ -131,6 +131,40 @@
       .then(response => response.json())
       .then(data => {
         const container = document.getElementById('productionList');
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const productions = data.data;
+  
+          // Generate table
+          let html = '<table><thead><tr>';
+          const headers = Object.keys(productions[0]);
+          headers.forEach(h => { html += `<th>${h}</th>`; });
+          html += '</tr></thead><tbody>';
+  
+          productions.forEach(row => {
+            html += '<tr>';
+            headers.forEach(h => { html += `<td>${row[h]}</td>`; });
+            html += '</tr>';
+          });
+  
+          html += '</tbody></table>';
+          container.innerHTML = html;
+        } else {
+          container.innerHTML = '<p>No upcoming productions at this time.</p>';
+        }
+      })
+      .catch(err => {
+        document.getElementById('productionList').innerHTML = '<p>Error loading productions.</p>';
+        console.error(err);
+      });
+  </script>
+  
+
+  <!--
+  <script>
+    fetch('/view?name=vw_PlayListing')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('productionList');
         if (data && data.length > 0) {
           container.innerHTML = '';
           data.forEach(prod => {
@@ -149,4 +183,4 @@
       });
   </script>
 </body>
-</html>
+</html> -->
