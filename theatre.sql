@@ -113,6 +113,26 @@ DROP TABLE IF EXISTS Play;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ========================================================================================
+-- Describe Queries to Show All DDL Structures
+-- ========================================================================================
+
+DESCRIBE Play;
+DESCRIBE Production;
+DESCRIBE Production_Play;
+DESCRIBE Member;
+DESCRIBE Member_Production;
+DESCRIBE DuesOwed;
+DESCRIBE DuesPayment;
+DESCRIBE Sponsor;
+DESCRIBE Production_Sponsor;
+DESCRIBE Patron;
+DESCRIBE Seat;
+DESCRIBE Ticket;
+DESCRIBE Meeting;
+DESCRIBE Member_Meeting;
+DESCRIBE Financial_Transaction;
+
+-- ========================================================================================
 -- DDL Statements
 -- ========================================================================================
 
@@ -263,7 +283,7 @@ CREATE TABLE Financial_Transaction (
 );
 
 -- ========================================================================================
--- Scripts NOTE: The below has not been tested yet from scripts to the end. (March 28th 10pm)
+-- Scripts
 -- ========================================================================================
 
 -- ========================================================================================
