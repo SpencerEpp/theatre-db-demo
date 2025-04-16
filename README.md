@@ -82,3 +82,6 @@ if you are updating the schema follow steps 7-10.<br>
 If you want to **wipe and rebuild** the DB from `theatre.sql`:<br>
 
 1. Follow steps 7-10 from above.<br>
+
+## Extra Note
+Railway Server can be in a different timezone so the web interface can show a different time than inserted data; however, directly querying the database or using the website will shows correct dates and times.

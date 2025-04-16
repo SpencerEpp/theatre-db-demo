@@ -1,6 +1,33 @@
-/* If we want to convert from basic in line CSS to a full CSS file do so here. */
+/* =========================================================================================
 
-  /* Reset some basic styles */
+  Final Project
+
+  Advanced Databases: COMP 4225-001
+  Prof: Dr. Said Baadel
+
+  Students: 
+  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+
+  Description:
+    This stylesheet defines the shared visual theme for all frontend pages in the 
+    Bella SW Community Theatre web application. It focuses on clean layout, modern 
+    spacing, and responsive usability for desktop and mobile devices.
+
+    Features:
+      - Reset and base styling for consistent margins, padding, and box models
+      - Typography and color palette optimized for readability and contrast
+      - Form styling for all user inputs and buttons with interactive focus states
+      - Container and card-style layout for forms, outputs, and import sections
+      - Mobile-friendly responsive layout with automatic scaling for smaller screens
+      - Specialized styling for CSV import modules and scrollable output areas
+
+    This stylesheet is used by all role-based HTML interfaces (admin, member, patron, guest, login, and index).
+
+========================================================================================= */
+
   * {
     margin: 0;
     padding: 0;
@@ -130,4 +157,3 @@
       padding: 15px;
     }
   }
-

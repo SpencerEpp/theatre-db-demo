@@ -1,4 +1,29 @@
--- Run this script to populate the database with data if you are using a local instance.
+-- =========================================================================================
+--
+--  Final Project
+--
+--  Advanced Databases: COMP 4225-001
+--  Prof: Dr. Said Baadel
+--
+--  Students: 
+--  Mohammed Arab - 201700065 - marab065@mtroyal.ca
+--  Spencer Epp   - 201481162 - sepp162@mtroyal.ca
+--  Henry Nguyen  - 201708407 - hnguy407@mtroyal.ca
+--  Felix Yap     - 201719898 - fyap898@mtroyal.ca
+--
+--  Description:
+--    This SQL script is used for local development and testing. It loads a sample dataset
+--    into the Theatre Management System database by inserting predefined records into key 
+--    tables. The script includes inserts for all of the tables in `theatre.sql`
+--
+--    This script does not include `DROP` or `CREATE` statements and assumes the schema has 
+--    already been created using `theatre.sql`.
+--
+--  Usage:
+--    Run this file in a local MySQL-compatible client after executing `theatre.sql`.
+--    It is not intended for production use.
+--
+-- =========================================================================================
 
 INSERT INTO `DuesOwed` (`MemberID`, `Year`, `TotalDue`) VALUES ('1.0', '2024.0', '100.0');
 INSERT INTO `DuesOwed` (`MemberID`, `Year`, `TotalDue`) VALUES ('2.0', '2024.0', '100.0');
